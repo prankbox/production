@@ -354,9 +354,7 @@ vercel env add CLERK_JWKS_URL
 ```
 Paste your JWKS URL and select all environments except for development.
 
-### Step 12: (This step intentionally skipped - we will test after deployment)
-
-### Step 13: Deploy to Production
+### Step 12: Deploy to Production
 
 Deploy your authenticated app:
 
@@ -421,3 +419,9 @@ Congratulations! You've added professional authentication to your SaaS. In Part 
 - Customer portal for managing subscriptions
 
 Your app is now a real SaaS product with secure user authentication!
+
+---
+
+## Next up
+
+Continue straight on to **[Day 3, Part 2](day3.part2.md)** - add subscriptions and payments with Clerk Billing.

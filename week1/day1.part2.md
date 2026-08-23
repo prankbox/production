@@ -141,3 +141,9 @@ Your API key is:
 - Securely stored in Vercel's environment variables
 - Only accessible to your deployed application
 - Protected from being visible in browser developer tools
+
+---
+
+## Next up
+
+**[Day 2](day2.md)** - build a full-stack SaaS product with Next.js and FastAPI.

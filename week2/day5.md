@@ -14,6 +14,13 @@ Welcome to the final day of Week 2! Today we're implementing the complete DevOps
 - **Multi-environment workflows** - Automated and manual deployments
 - **Infrastructure cleanup** - Complete teardown strategies
 
+## Prerequisites
+
+- Completed Day 4 - you can deploy and destroy environments with `./scripts/deploy.sh` and `./scripts/destroy.sh`
+- A GitHub account
+- Git installed and configured with your name and email
+- Docker Desktop running, for the Lambda package build
+
 ## Part 1: Clean Up Existing Infrastructure
 
 Before setting up CI/CD, let's remove all existing environments to start fresh.
@@ -812,7 +819,40 @@ terraform {
 
 This file tells Terraform to use S3 for state storage, but doesn't specify the bucket name or other details. Those will be provided by the deployment scripts using `-backend-config` flags.
 
-### Step 4: Add Secrets to GitHub
+### Step 4: Clear the Local State (don't skip this!)
+
+Everything we've built so far in Part 3 and Part 4 - the state bucket and the GitHub Actions role - was created using Terraform's **local** state, because the S3 backend didn't exist yet. Now that `backend.tf` exists, Terraform sees a local state file *and* a new backend, and it will stop and ask permission to migrate one into the other.
+
+Our scripts run `terraform init -input=false`, which can't answer that question. So the very first deployment would fail with:
+
+```
+Error: Can't ask approval for state migration when interactive input is disabled.
+Please remove the "-input=false" option and try again.
+```
+
+We don't want to migrate that state anyway - the state bucket and the IAM role are deliberately "bootstrap" resources that live outside Terraform from here on. So we simply discard the local state:
+
+**Mac/Linux:**
+```bash
+cd terraform
+rm -f terraform.tfstate terraform.tfstate.backup
+rm -rf terraform.tfstate.d
+cd ..
+```
+
+**Windows (PowerShell):**
+```powershell
+cd terraform
+Remove-Item -Force -ErrorAction SilentlyContinue terraform.tfstate, terraform.tfstate.backup
+Remove-Item -Recurse -Force -ErrorAction SilentlyContinue terraform.tfstate.d
+cd ..
+```
+
+**This does not delete anything in AWS.** The S3 state bucket and the `github-actions-twin-deploy` role are still there and still working - Terraform just stops tracking them. That's exactly why Part 10 cleans them up with AWS CLI commands rather than `terraform destroy`.
+
+> Tip: if you ever *do* see the state-migration error later on, this is the fix - remove the local `terraform.tfstate*` files from the `terraform` directory and run again. Note that `terraform init -reconfigure` does **not** help here; only clearing the local state does.
+
+### Step 5: Add Secrets to GitHub
 
 1. Go to your GitHub repository
 2. Click **Settings** tab
@@ -831,7 +871,7 @@ This file tells Terraform to use S3 for state storage, but doesn't specify the b
 - Name: `AWS_ACCOUNT_ID`
 - Value: Your 12-digit AWS account ID
 
-### Step 5: Verify Secrets
+### Step 6: Verify Secrets
 
 After adding all secrets, you should see 3 repository secrets:
 - AWS_ROLE_ARN
@@ -1820,3 +1860,9 @@ Keep your repository healthy:
 You've built something amazing - a fully automated, production-ready AI application with professional DevOps practices. This is how real companies deploy and manage their infrastructure!
 
 Great job completing Week 2! 🚀
+
+---
+
+## Next up
+
+**[Week 3](../week3/README.md)** - on to the cyber and Alex projects.

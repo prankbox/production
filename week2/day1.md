@@ -33,6 +33,13 @@ In Week 1, we used Next.js with the **Pages Router**. This week, we're using the
 
 For our purposes, the main difference is the project structure - the actual React code you write will be very similar!
 
+## Prerequisites
+
+- Your OpenAI API key from Week 1
+- Node.js and Cursor, from Week 1 Day 1
+
+This is a brand new project called `twin`, so nothing from your Week 1 `saas` project is needed.
+
 ## Part 1: Project Setup
 
 ### Step 1: Create Your Project Structure
@@ -68,6 +75,8 @@ npx create-next-app@latest frontend --typescript --tailwind --app --no-src-dir
 ```
 
 When prompted, accept all the default options by pressing Enter.
+
+> One of those prompts asks about the import alias. Keep the default of `@/*` - our code imports the Twin component as `@/components/twin`, which only works with that alias in place.
 
 After it completes, create a components directory using Cursor's file explorer:
 
@@ -264,6 +273,8 @@ if __name__ == "__main__":
 ### Step 1: Create the Twin Component
 
 Create `frontend/components/twin.tsx`:
+
+> This component imports icons from `lucide-react`. Your editor will underline that import in red until we install the package in Step 2 - that's expected, and we'll fix it in a moment.
 
 ```typescript
 'use client';
@@ -511,9 +522,9 @@ export default function Home() {
 
 ### Step 4: Fix Tailwind v4 Configuration
 
-Next.js 15.5 comes with Tailwind CSS v4, which has a different configuration approach. We need to update two files:
+Current versions of Next.js ship with Tailwind CSS v4, which configures itself differently from v3. We need to check two files - `postcss.config.mjs` in this step, and `globals.css` in Step 5.
 
-First, update `frontend/postcss.config.mjs`:
+First, confirm `frontend/postcss.config.mjs` looks like this (recent versions of `create-next-app` already generate it this way, in which case there's nothing to change):
 
 ```javascript
 export default {
@@ -586,7 +597,7 @@ npm run dev
 
 You should see:
 ```
-▲ Next.js 15.x.x
+▲ Next.js 16.x.x
 Local: http://localhost:3000
 ```
 
@@ -864,3 +875,9 @@ Your Digital Twin is just getting started! Tomorrow we'll give it more personali
 - [uv Documentation](https://docs.astral.sh/uv/)
 
 Ready for Day 2? Your twin is about to get a lot more interesting! 🚀
+
+---
+
+## Next up
+
+**[Day 2](day2.md)** - deploy your twin to AWS with Lambda, S3 and CloudFront.

@@ -35,6 +35,12 @@ AWS's Nova family are Amazon's own foundation models, optimized for different us
 
 Today we'll make the model a configuration setting, so you can switch between them and compare.
 
+## Prerequisites
+
+- Completed Day 2 - your twin is live on AWS via CloudFront, with Lambda, API Gateway and S3 behind it
+- Your root AWS credentials to hand, since we need to change IAM permissions
+- Docker Desktop running, to rebuild the Lambda package
+
 ## Part 1: Configure IAM Permissions
 
 ### Step 1: Sign In as Root User
@@ -803,3 +809,9 @@ Your Digital Twin is now powered entirely by AWS services - a true cloud-native 
 - [AWS Cost Management](https://aws.amazon.com/cost-management/)
 
 Congratulations on successfully integrating AWS Bedrock! 🚀
+
+---
+
+## Next up
+
+**[Day 4](day4.md)** - replace all that console clicking with Terraform.

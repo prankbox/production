@@ -6,6 +6,12 @@
 
 _If you're looking at this in Cursor, please right click on the filename in the Explorer on the left, and select "Open preview", to view it in formatted glory._
 
+### Prerequisites
+
+- The AWS account and `aiengineer` IAM user from Week 1 Day 5, and the AWS CLI configured
+- `uv` installed, from Week 2 Day 1
+- No Docker needed - AgentCore builds your container in the cloud with CodeBuild
+
 ### Step 1: IAM (groan)
 
 You're all pros now, so you get pro-level instructions!
@@ -42,7 +48,7 @@ https://github.com/aws/bedrock-agentcore-sdk-python
 The AgentCore Starter Toolkit (CLI):  
 https://github.com/aws/bedrock-agentcore-starter-toolkit  
 
-### Step 2b - a heads up about the AgentCore CLI (added since the videos)
+### A heads up about the AgentCore CLI (added since the videos)
 
 The `bedrock-agentcore-starter-toolkit` we use below - the thing that gives you the `agentcore` command - now prints a warning saying it is no longer the recommended CLI, and points you at a newer Node-based CLI (`npm install -g @aws/agentcore`).
 

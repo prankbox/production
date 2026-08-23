@@ -25,6 +25,14 @@ I've also recorded an extra video to highlight the approach covered here - here'
 - **AWS Lambda Web Adapter** to run a normal FastAPI app on Lambda unchanged
 - **Cost monitoring** to keep your AWS bill under control
 
+## Prerequisites
+
+- Completed Day 4 - your healthcare consultation assistant works on Vercel
+- A payment card, to create an AWS account (we'll set up budget alerts before deploying anything)
+- Roughly 5GB of free disk space for Docker Desktop and your container image
+
+Everything else - Docker, the AWS CLI, your AWS account - you'll install and create as you go.
+
 ## Important: Budget Protection First!
 
 AWS charges for resources you use. Let's set up cost alerts BEFORE deploying anything.
@@ -252,7 +260,9 @@ This works because both frontend and backend will be served from the same domain
 
 ### Step 4: Update Backend Server
 
-Create a new file `api/server.py` (the same FastAPI server that worked for App Runner — no changes are required for it to run on Lambda; the Lambda Web Adapter handles the translation transparently):
+Create a new file `api/server.py` (the same FastAPI server that worked for App Runner — no changes are required for it to run on Lambda; the Lambda Web Adapter handles the translation transparently).
+
+Note that this is a **new file alongside** your existing `api/index.py`. From here on, `server.py` is the one that matters: it's the only Python file the Dockerfile copies into the container. You can leave `api/index.py` where it is (it's what Vercel used, and it's handy if you want to go back and compare), but nothing in the AWS deployment reads it any more.
 
 ```python
 import os
@@ -994,3 +1004,9 @@ This is how lean engineering teams ship containerized applications on AWS in 202
 - [App Runner availability change announcement](https://docs.aws.amazon.com/apprunner/latest/dg/apprunner-availability-change.html)
 
 Remember to monitor your AWS costs. Happy deploying!
+
+---
+
+## Next up
+
+**[Week 2, Day 1](../week2/day1.md)** - build your AI Digital Twin.

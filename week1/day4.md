@@ -582,3 +582,9 @@ Congratulations! You've built a professional healthcare consultation assistant w
 6. **Collaboration**: Allow multiple doctors to share templates
 
 Your healthcare assistant is ready to help medical professionals save time and improve patient communication!
+
+---
+
+## Next up
+
+**[Day 5](day5.md)** - containerize the app with Docker and deploy it to AWS Lambda.

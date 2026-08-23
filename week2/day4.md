@@ -13,20 +13,35 @@ Welcome to Day 4! Today marks a significant shift in how we deploy our Digital T
 - **Environment isolation** - Separate dev, test, and production
 - **Optional: Custom domains** - Professional DNS configuration
 
+## Prerequisites
+
+- Completed Day 3 - your twin is running on AWS Bedrock
+- Docker Desktop running, for the Lambda package build
+- We'll install Terraform in Part 2, so you don't need it yet
+
 ## Part 1: Clean Slate - Remove Manual Resources
 
 Before we embrace automation, let's clean up all the resources we created manually in Days 2 and 3. This final console tour will help reinforce what Terraform will manage for us.
 
-### Step 1: Delete Lambda Function
+### Step 1: Start Disabling the CloudFront Distribution
+
+CloudFront takes 5-10 minutes to disable, and it can't be deleted until it has. So we kick that off **first** and do everything else while we wait.
 
 1. Sign in to AWS Console as `aiengineer`
-2. Navigate to **Lambda**
-3. Select `twin-api` function
-4. Click **Actions** → **Delete**
-5. Type "delete" to confirm
-6. Click **Delete**
+2. Navigate to **CloudFront**
+3. Select your distribution
+4. Click **Disable** (if it's enabled)
+5. Leave this tab open - we'll come back to delete it in Step 5
 
-### Step 2: Delete API Gateway
+### Step 2: Delete Lambda Function
+
+1. Navigate to **Lambda**
+2. Select `twin-api` function
+3. Click **Actions** → **Delete**
+4. Type "delete" to confirm
+5. Click **Delete**
+
+### Step 3: Delete API Gateway
 
 1. Navigate to **API Gateway**
 2. Click on `twin-api-gateway`
@@ -34,7 +49,7 @@ Before we embrace automation, let's clean up all the resources we created manual
 4. Type the API name to confirm
 5. Click **Delete**
 
-### Step 3: Empty and Delete S3 Buckets
+### Step 4: Empty and Delete S3 Buckets
 
 **Memory Bucket:**
 1. Navigate to **S3**
@@ -50,16 +65,16 @@ Before we embrace automation, let's clean up all the resources we created manual
 1. Click on your frontend bucket (e.g., `twin-frontend-xyz`)
 2. Repeat the empty and delete process
 
-### Step 4: Delete CloudFront Distribution
+### Step 5: Finish Deleting the CloudFront Distribution
 
-1. Navigate to **CloudFront**
-2. Select your distribution
-3. Click **Disable** (if it's enabled)
-4. Wait for status to change to "Deployed" (5-10 minutes)
-5. Once disabled, click **Delete**
-6. Click **Delete** to confirm
+Back to the tab you left open in Step 1:
 
-### Step 5: Verify Clean State
+1. Check the distribution's status - it needs to read **Disabled** and **Deployed**
+2. If it's still "Deploying", wait a few more minutes and refresh
+3. Once disabled, select it and click **Delete**
+4. Click **Delete** to confirm
+
+### Step 6: Verify Clean State
 
 1. Check each service to ensure no twin-related resources remain:
    - Lambda: No `twin-api` functions
@@ -114,7 +129,7 @@ variable "environment" {
 
 ### Step 1: Install Terraform
 
-As of August 2025, Terraform installation has changed due to licensing updates. We'll use the official distribution.
+We'll install Terraform from HashiCorp's official distribution.
 
 **Mac (using Homebrew):**
 ```bash
@@ -128,8 +143,8 @@ brew install hashicorp/tap/terraform
 3. Extract and move to PATH:
 ```bash
 # Example for Mac (adjust URL for your system)
-curl -O https://releases.hashicorp.com/terraform/1.10.0/terraform_1.10.0_darwin_amd64.zip
-unzip terraform_1.10.0_darwin_amd64.zip
+curl -O https://releases.hashicorp.com/terraform/1.15.9/terraform_1.15.9_darwin_amd64.zip
+unzip terraform_1.15.9_darwin_amd64.zip
 sudo mv terraform /usr/local/bin/
 ```
 
@@ -147,7 +162,7 @@ sudo mv terraform /usr/local/bin/
 terraform --version
 ```
 
-You should see something like: `Terraform v1.10.0` (version may vary)
+You should see something like: `Terraform v1.15.9`. Any recent 1.x version is fine.
 
 ### Step 2: Update .gitignore
 
@@ -707,15 +722,22 @@ root_domain              = ""
 
 Before we create our deployment scripts, we need to update the frontend to use environment variables for the API URL instead of hardcoding it.
 
-Update `frontend/components/twin.tsx` - find the fetch call (around line 43) and replace:
+Update `frontend/components/twin.tsx` - find the fetch call (around line 43) and replace it.
+
+Remember that on Day 2 you hardcoded your API Gateway URL here, so the line currently in your file looks like this:
 
 ```typescript
-// Find this line:
-const response = await fetch('http://localhost:8000/chat', {
+// Find this line (it has YOUR API Gateway URL in it, from Day 2):
+const response = await fetch('https://abc123xyz.execute-api.us-east-1.amazonaws.com/chat', {
+```
 
-// Replace with:
+Replace it with:
+
+```typescript
 const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/chat`, {
 ```
+
+Note the backticks - this is a JavaScript template literal, not a normal quoted string.
 
 This change allows the frontend to:
 - Use `http://localhost:8000` during local development
@@ -885,6 +907,12 @@ Initializing the backend...
 Initializing provider plugins...
 - Installing hashicorp/aws v6.x.x...
 Terraform has been successfully initialized!
+```
+
+Now go back up to the project root, because the deployment script expects to be run from there:
+
+```bash
+cd ..
 ```
 
 ### Step 2: Deploy Using the Script
@@ -1432,3 +1460,9 @@ Your Digital Twin now has professional Infrastructure as Code that any team can 
 - [AWS IAM Best Practices](https://docs.aws.amazon.com/IAM/latest/UserGuide/best-practices.html)
 
 Congratulations on automating your infrastructure deployment! 🚀
+
+---
+
+## Next up
+
+**[Day 5](day5.md)** - wire it all up to CI/CD with GitHub Actions.

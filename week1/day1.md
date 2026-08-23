@@ -203,3 +203,9 @@ You've successfully deployed your first API to production! Your API is now:
 ### Need Help?
 - Check Vercel's documentation: [https://vercel.com/docs](https://vercel.com/docs)
 - Ask in class or post in the course forum
+
+---
+
+## Next up
+
+Continue straight on to **[Day 1, Part 2](day1.part2.md)** - we'll add OpenAI to the app you just deployed.

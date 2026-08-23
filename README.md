@@ -21,9 +21,22 @@ I'm also trying out X at [@edwarddonner](https://x.com/edwarddonner) - if you're
 
 ### How this repo is organized
 
-- Each week of the course gets its own folder; start in the week1 folder and pick day1.md
+- Each week of the course gets its own folder; **start in the week1 folder and pick [day1.md](week1/day1.md)**
+- Every day's file ends with a "Next up" link, so you can just keep following those through the course
 - There are many essential guides in the [guides](guides/01_intro.ipynb) section
 - Please `git pull` frequently to get the latest updates - see [Guide 3 in the Guides folder](guides/03_git_and_github.ipynb) on how to pull.
+
+### The route through the course
+
+| Where | What you build | Lives in |
+| --- | --- | --- |
+| [Week 1](week1/day1.md) | A healthcare SaaS: Vercel → Next.js + FastAPI → Clerk auth and billing → Docker on AWS Lambda | this repo |
+| [Week 2](week2/day1.md) | Your AI Digital Twin: Lambda, API Gateway, S3, CloudFront, Bedrock, Terraform, CI/CD | this repo |
+| [Week 3](week3/README.md) | Days 1-2 in the [cyber](https://github.com/ed-donner/cyber) repo, then on to [alex](https://github.com/ed-donner/alex) | other repos |
+| [Week 4](week4/README.md) | Multi-agent Alex, continued | the alex repo |
+| [Finale](finale/README.md) | Deploying agents with Amazon Bedrock AgentCore | this repo |
+
+Weeks 3 and 4 are in separate repos - the README in each week folder tells you exactly where to go and which file to open.
 
 
 ### The deal you made

@@ -396,3 +396,9 @@ Congratulations! You've built a complete SaaS with:
 7. **Free trial periods**
 
 Your Business Idea Generator is now a fully-functional SaaS product ready for real customers!
+
+---
+
+## Next up
+
+**[Day 4](day4.md)** - turn your SaaS into a healthcare consultation assistant.

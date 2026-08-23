@@ -13,6 +13,13 @@ Yesterday, you built a conversational AI Digital Twin that runs locally. Today, 
 - **CloudFront** for global content delivery
 - **Production deployment** patterns and best practices
 
+## Prerequisites
+
+- Completed Day 1 - your twin runs locally, with memory, at `http://localhost:3000`
+- The AWS account and `aiengineer` IAM user you created in Week 1 Day 5
+- AWS CLI installed and configured (`aws configure`), also from Week 1 Day 5
+- **Docker Desktop running** - the Lambda packaging script builds dependencies inside a Lambda container image
+
 ## Part 1: Enhance Your Digital Twin
 
 Let's add rich context to make your twin more personalized and knowledgeable.
@@ -899,7 +906,7 @@ npm run build
 
 This creates an `out` directory with static files.
 
-**Note**: With Next.js 15.5 and App Router, you must set `output: 'export'` in the config to generate the `out` directory.
+**Note**: With the App Router, you must set `output: 'export'` in the config to generate the `out` directory.
 
 ### Step 4: Upload to S3
 
@@ -1132,3 +1139,9 @@ Your Digital Twin is now live on the internet with professional AWS infrastructu
 - [CloudFront Documentation](https://docs.aws.amazon.com/cloudfront/)
 
 Congratulations on deploying your Digital Twin to AWS! 🚀
+
+---
+
+## Next up
+
+**[Day 3](day3.md)** - swap OpenAI for AWS Bedrock.
