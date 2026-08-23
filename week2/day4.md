@@ -259,9 +259,9 @@ variable "environment" {
 }
 
 variable "bedrock_model_id" {
-  description = "Bedrock model ID"
+  description = "Bedrock model ID (use a cross-region inference profile - see Day 3)"
   type        = string
-  default     = "amazon.nova-micro-v1:0"
+  default     = "global.amazon.nova-2-lite-v1:0"
 }
 
 variable "lambda_timeout" {
@@ -695,7 +695,7 @@ Create `terraform/terraform.tfvars`:
 ```hcl
 project_name             = "twin"
 environment              = "dev"
-bedrock_model_id         = "amazon.nova-micro-v1:0"
+bedrock_model_id         = "global.amazon.nova-2-lite-v1:0"
 lambda_timeout           = 60
 api_throttle_burst_limit = 10
 api_throttle_rate_limit  = 5
@@ -1200,7 +1200,7 @@ Create `terraform/prod.tfvars`:
 ```hcl
 project_name             = "twin"
 environment              = "prod"
-bedrock_model_id         = "amazon.nova-lite-v1:0"  # Use better model for production
+bedrock_model_id         = "global.amazon.nova-2-lite-v1:0"  # Same current-generation model as dev
 lambda_timeout           = 60
 api_throttle_burst_limit = 20
 api_throttle_rate_limit  = 10

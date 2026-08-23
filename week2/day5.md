@@ -232,7 +232,7 @@ If prompted for authentication:
 Create `terraform/backend-setup.tf`:
 
 ```hcl
-# This file creates the S3 bucket and DynamoDB table for Terraform state
+# This file creates the S3 bucket that holds Terraform state
 # Run this once per AWS account, then remove the file
 
 resource "aws_s3_bucket" "terraform_state" {
@@ -272,31 +272,10 @@ resource "aws_s3_bucket_public_access_block" "terraform_state" {
   restrict_public_buckets = true
 }
 
-resource "aws_dynamodb_table" "terraform_locks" {
-  name         = "twin-terraform-locks"
-  billing_mode = "PAY_PER_REQUEST"
-  hash_key     = "LockID"
-
-  attribute {
-    name = "LockID"
-    type = "S"
-  }
-
-  tags = {
-    Name        = "Terraform State Locks"
-    Environment = "global"
-    ManagedBy   = "terraform"
-  }
-}
-
 # Note: aws_caller_identity.current is already defined in main.tf
 
 output "state_bucket_name" {
   value = aws_s3_bucket.terraform_state.id
-}
-
-output "dynamodb_table_name" {
-  value = aws_dynamodb_table.terraform_locks.name
 }
 ```
 
@@ -314,15 +293,17 @@ terraform init
 # Apply just the backend resources (one line - copy and paste this entire command - different for Mac/Linux and PC)
 
 # Mac/Linux version:
-terraform apply -target=aws_s3_bucket.terraform_state -target=aws_s3_bucket_versioning.terraform_state -target=aws_s3_bucket_server_side_encryption_configuration.terraform_state -target=aws_s3_bucket_public_access_block.terraform_state -target=aws_dynamodb_table.terraform_locks
+terraform apply -target=aws_s3_bucket.terraform_state -target=aws_s3_bucket_versioning.terraform_state -target=aws_s3_bucket_server_side_encryption_configuration.terraform_state -target=aws_s3_bucket_public_access_block.terraform_state
 # PC version
-terraform apply --% -target="aws_s3_bucket.terraform_state" -target="aws_s3_bucket_versioning.terraform_state" -target="aws_s3_bucket_server_side_encryption_configuration.terraform_state" -target="aws_s3_bucket_public_access_block.terraform_state" -target="aws_dynamodb_table.terraform_locks"
+terraform apply --% -target="aws_s3_bucket.terraform_state" -target="aws_s3_bucket_versioning.terraform_state" -target="aws_s3_bucket_server_side_encryption_configuration.terraform_state" -target="aws_s3_bucket_public_access_block.terraform_state"
 
 # Verify the resources were created
 terraform output
 ```
 
-The bucket and DynamoDB table are now ready for storing Terraform state.
+The bucket is now ready for storing Terraform state.
+
+> **Why no DynamoDB table?** Older Terraform guides (including the video) create a DynamoDB table to hold state locks. Terraform now supports locking natively in S3 via a small `.tflock` object, and the `dynamodb_table` backend argument is deprecated. We use the S3-native approach below, which means one less resource to create, pay for, and clean up.
 
 ### Step 3: Remove Setup File
 
@@ -351,7 +332,6 @@ terraform init -input=false \
   -backend-config="bucket=twin-terraform-state-${AWS_ACCOUNT_ID}" \
   -backend-config="key=${ENVIRONMENT}/terraform.tfstate" \
   -backend-config="region=${AWS_REGION}" \
-  -backend-config="dynamodb_table=twin-terraform-locks" \
   -backend-config="encrypt=true"
 ```
 
@@ -368,7 +348,6 @@ terraform init -input=false `
   -backend-config="bucket=twin-terraform-state-$awsAccountId" `
   -backend-config="key=$Environment/terraform.tfstate" `
   -backend-config="region=$awsRegion" `
-  -backend-config="dynamodb_table=twin-terraform-locks" `
   -backend-config="encrypt=true"
 ```
 
@@ -407,7 +386,6 @@ terraform init -input=false \
   -backend-config="bucket=twin-terraform-state-${AWS_ACCOUNT_ID}" \
   -backend-config="key=${ENVIRONMENT}/terraform.tfstate" \
   -backend-config="region=${AWS_REGION}" \
-  -backend-config="dynamodb_table=twin-terraform-locks" \
   -backend-config="encrypt=true"
 
 # Check if workspace exists
@@ -496,7 +474,6 @@ terraform init -input=false `
   -backend-config="bucket=twin-terraform-state-$awsAccountId" `
   -backend-config="key=$Environment/terraform.tfstate" `
   -backend-config="region=$awsRegion" `
-  -backend-config="dynamodb_table=twin-terraform-locks" `
   -backend-config="encrypt=true"
 
 # Check if workspace exists
@@ -560,7 +537,9 @@ Write-Host "   terraform workspace delete $Environment" -ForegroundColor White
 
 ### Step 1: Create AWS IAM Role for GitHub Actions
 
-As of August 2025, GitHub strongly recommends using OpenID Connect (OIDC) for AWS authentication. This is more secure than storing long-lived access keys.
+GitHub strongly recommends using OpenID Connect (OIDC) for AWS authentication. This is more secure than storing long-lived access keys.
+
+> **Heads up - added since the videos.** In July 2026 GitHub changed the format of the OIDC `sub` claim, inserting immutable numeric IDs after the owner and repo names (`repo:owner@1234567/repo@7654321:environment:dev`). Trust policies written for the old format silently stop matching, and the workflow fails with *"Not authorized to perform sts:AssumeRoleWithWebIdentity"*. The Terraform below already handles **both** formats. If you're fixing a role you created earlier, or you want to see your repo's actual `sub` claim, see [this write-up from student Nico F.](../community_contributions/week2_day5_oidc_issue.md).
 
 Create `terraform/github-oidc.tf`:
 
@@ -580,16 +559,15 @@ variable "github_repository" {
 # terraform import aws_iam_openid_connect_provider.github arn:aws:iam::ACCOUNT_ID:oidc-provider/token.actions.githubusercontent.com
 resource "aws_iam_openid_connect_provider" "github" {
   url = "https://token.actions.githubusercontent.com"
-  
+
   client_id_list = [
     "sts.amazonaws.com"
   ]
-  
-  # This thumbprint is from GitHub's documentation
-  # Verify current value at: https://github.blog/changelog/2023-06-27-github-actions-update-on-oidc-integration-with-aws/
-  thumbprint_list = [
-    "1b511abead59c6ce207077c0bf0e0043b1382612"
-  ]
+
+  # No thumbprint_list needed: for well-known providers such as GitHub, AWS
+  # validates the certificate against its own library of trusted root CAs and
+  # ignores any thumbprint you supply. Older guides pin a thumbprint here -
+  # it's harmless but meaningless, and it goes stale when GitHub rotates certs.
 }
 
 # IAM Role for GitHub Actions
@@ -610,7 +588,15 @@ resource "aws_iam_role" "github_actions" {
             "token.actions.githubusercontent.com:aud" = "sts.amazonaws.com"
           }
           StringLike = {
-            "token.actions.githubusercontent.com:sub" = "repo:${var.github_repository}:*"
+            # Two patterns, because GitHub changed the format of the `sub` claim in July 2026.
+            #   Old format: repo:owner/repo:environment:dev
+            #   New format: repo:owner@1234567/repo@7654321:environment:dev
+            # The @-suffixed numbers are immutable GitHub owner and repository IDs.
+            # Matching both means this works on old and new repositories alike.
+            "token.actions.githubusercontent.com:sub" = [
+              "repo:${var.github_repository}:*",
+              "repo:${split("/", var.github_repository)[0]}@*/${split("/", var.github_repository)[1]}@*:*"
+            ]
           }
         }
       }
@@ -652,11 +638,6 @@ resource "aws_iam_role_policy_attachment" "github_iam_read" {
 
 resource "aws_iam_role_policy_attachment" "github_bedrock" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonBedrockFullAccess"
-  role       = aws_iam_role.github_actions.name
-}
-
-resource "aws_iam_role_policy_attachment" "github_dynamodb" {
-  policy_arn = "arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess"
   role       = aws_iam_role.github_actions.name
 }
 
@@ -718,6 +699,7 @@ cd terraform
 terraform workspace select default
 
 # First, check if the OIDC provider already exists
+```
 
 **Mac/Linux:**
 ```bash
@@ -768,13 +750,13 @@ For example: if your GitHub username is 'johndoe', use: `johndoe/digital-twin`
 **Mac/Linux:**
 ```bash
 # Apply ALL resources including OIDC provider (this is one long command - copy and paste it all)
-terraform apply -target=aws_iam_openid_connect_provider.github -target=aws_iam_role.github_actions -target=aws_iam_role_policy_attachment.github_lambda -target=aws_iam_role_policy_attachment.github_s3 -target=aws_iam_role_policy_attachment.github_apigateway -target=aws_iam_role_policy_attachment.github_cloudfront -target=aws_iam_role_policy_attachment.github_iam_read -target=aws_iam_role_policy_attachment.github_bedrock -target=aws_iam_role_policy_attachment.github_dynamodb -target=aws_iam_role_policy_attachment.github_acm -target=aws_iam_role_policy_attachment.github_route53 -target=aws_iam_role_policy.github_additional -var="github_repository=YOUR_GITHUB_USERNAME/digital-twin"
+terraform apply -target=aws_iam_openid_connect_provider.github -target=aws_iam_role.github_actions -target=aws_iam_role_policy_attachment.github_lambda -target=aws_iam_role_policy_attachment.github_s3 -target=aws_iam_role_policy_attachment.github_apigateway -target=aws_iam_role_policy_attachment.github_cloudfront -target=aws_iam_role_policy_attachment.github_iam_read -target=aws_iam_role_policy_attachment.github_bedrock -target=aws_iam_role_policy_attachment.github_acm -target=aws_iam_role_policy_attachment.github_route53 -target=aws_iam_role_policy.github_additional -var="github_repository=YOUR_GITHUB_USERNAME/digital-twin"
 ```
 
 **Windows (PowerShell):**
 ```powershell
 # Apply ALL resources including OIDC provider (this is one long command - copy and paste it all)
-terraform apply -target="aws_iam_openid_connect_provider.github" -target="aws_iam_role.github_actions" -target="aws_iam_role_policy_attachment.github_lambda" -target="aws_iam_role_policy_attachment.github_s3" -target="aws_iam_role_policy_attachment.github_apigateway" -target="aws_iam_role_policy_attachment.github_cloudfront" -target="aws_iam_role_policy_attachment.github_iam_read" -target="aws_iam_role_policy_attachment.github_bedrock" -target="aws_iam_role_policy_attachment.github_dynamodb" -target="aws_iam_role_policy_attachment.github_acm" -target="aws_iam_role_policy_attachment.github_route53" -target="aws_iam_role_policy.github_additional" -var="github_repository=YOUR_GITHUB_USERNAME/digital-twin"
+terraform apply -target="aws_iam_openid_connect_provider.github" -target="aws_iam_role.github_actions" -target="aws_iam_role_policy_attachment.github_lambda" -target="aws_iam_role_policy_attachment.github_s3" -target="aws_iam_role_policy_attachment.github_apigateway" -target="aws_iam_role_policy_attachment.github_cloudfront" -target="aws_iam_role_policy_attachment.github_iam_read" -target="aws_iam_role_policy_attachment.github_bedrock" -target="aws_iam_role_policy_attachment.github_acm" -target="aws_iam_role_policy_attachment.github_route53" -target="aws_iam_role_policy.github_additional" -var="github_repository=YOUR_GITHUB_USERNAME/digital-twin"
 ```
 
 #### Scenario B: OIDC Provider Already Exists (You Imported It)
@@ -788,13 +770,13 @@ If you ran the import command above, you've already imported the OIDC provider. 
 **Mac/Linux:**
 ```bash
 # Apply ONLY the IAM role and policies (NOT the OIDC provider) - one long command
-terraform apply -target=aws_iam_role.github_actions -target=aws_iam_role_policy_attachment.github_lambda -target=aws_iam_role_policy_attachment.github_s3 -target=aws_iam_role_policy_attachment.github_apigateway -target=aws_iam_role_policy_attachment.github_cloudfront -target=aws_iam_role_policy_attachment.github_iam_read -target=aws_iam_role_policy_attachment.github_bedrock -target=aws_iam_role_policy_attachment.github_dynamodb -target=aws_iam_role_policy_attachment.github_acm -target=aws_iam_role_policy_attachment.github_route53 -target=aws_iam_role_policy.github_additional -var="github_repository=YOUR_GITHUB_USERNAME/your-repo-name"
+terraform apply -target=aws_iam_role.github_actions -target=aws_iam_role_policy_attachment.github_lambda -target=aws_iam_role_policy_attachment.github_s3 -target=aws_iam_role_policy_attachment.github_apigateway -target=aws_iam_role_policy_attachment.github_cloudfront -target=aws_iam_role_policy_attachment.github_iam_read -target=aws_iam_role_policy_attachment.github_bedrock -target=aws_iam_role_policy_attachment.github_acm -target=aws_iam_role_policy_attachment.github_route53 -target=aws_iam_role_policy.github_additional -var="github_repository=YOUR_GITHUB_USERNAME/your-repo-name"
 ```
 
 **Windows (PowerShell):**
 ```powershell
 # Apply ONLY the IAM role and policies (NOT the OIDC provider) - one long command
-terraform apply -target="aws_iam_role.github_actions" -target="aws_iam_role_policy_attachment.github_lambda" -target="aws_iam_role_policy_attachment.github_s3" -target="aws_iam_role_policy_attachment.github_apigateway" -target="aws_iam_role_policy_attachment.github_cloudfront" -target="aws_iam_role_policy_attachment.github_iam_read" -target="aws_iam_role_policy_attachment.github_bedrock" -target="aws_iam_role_policy_attachment.github_dynamodb" -target="aws_iam_role_policy_attachment.github_acm" -target="aws_iam_role_policy_attachment.github_route53" -target="aws_iam_role_policy.github_additional" -var="github_repository=myrepo/digital-twin"
+terraform apply -target="aws_iam_role.github_actions" -target="aws_iam_role_policy_attachment.github_lambda" -target="aws_iam_role_policy_attachment.github_s3" -target="aws_iam_role_policy_attachment.github_apigateway" -target="aws_iam_role_policy_attachment.github_cloudfront" -target="aws_iam_role_policy_attachment.github_iam_read" -target="aws_iam_role_policy_attachment.github_bedrock" -target="aws_iam_role_policy_attachment.github_acm" -target="aws_iam_role_policy_attachment.github_route53" -target="aws_iam_role_policy.github_additional" -var="github_repository=myrepo/digital-twin"
 ```
 
 ### Get the Role ARN and Clean Up
@@ -821,8 +803,9 @@ Create `terraform/backend.tf`:
 ```hcl
 terraform {
   backend "s3" {
-    # These values will be set by deployment scripts
-    # For local development, they can be passed via -backend-config
+    # Bucket, key and region are set by the deployment scripts via -backend-config.
+    # use_lockfile turns on Terraform's native S3 state locking (no DynamoDB needed).
+    use_lockfile = true
   }
 }
 ```
@@ -906,17 +889,17 @@ jobs:
     
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           role-session-name: github-actions-deploy
           aws-region: ${{ secrets.DEFAULT_AWS_REGION }}
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.12'
 
@@ -926,14 +909,14 @@ jobs:
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
+        uses: hashicorp/setup-terraform@v4
         with:
           terraform_wrapper: false  # Important: disable wrapper to get raw outputs
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
           cache-dependency-path: frontend/package-lock.json
 
@@ -1022,17 +1005,17 @@ jobs:
           echo "✅ Destruction confirmed for ${{ github.event.inputs.environment }}"
 
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           role-session-name: github-actions-destroy
           aws-region: ${{ secrets.DEFAULT_AWS_REGION }}
 
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
+        uses: hashicorp/setup-terraform@v4
         with:
           terraform_wrapper: false  # Important: disable wrapper to get raw outputs
 
@@ -1555,8 +1538,7 @@ Check each service to ensure all project resources are removed:
 2. **S3**: Only the `twin-terraform-state-*` bucket should remain
 3. **API Gateway**: No `twin-` APIs
 4. **CloudFront**: No twin distributions
-5. **DynamoDB**: Only the `twin-terraform-locks` table should remain
-6. **IAM**: The `github-actions-twin-deploy` role should remain
+5. **IAM**: The `github-actions-twin-deploy` role should remain
 
 #### Option B: Use Resource Explorer (Recommended)
 
@@ -1610,14 +1592,12 @@ To see what's actually costing money:
    - S3: Minimal (cents)
    - CloudFront: Minimal (cents)
    - Bedrock: Depends on usage, typically under $5
-   - DynamoDB: Minimal (cents)
 
 ### Step 5: Optional - Clean Up GitHub Actions Resources
 
 The remaining resources have minimal ongoing costs:
 - **IAM Role** (`github-actions-twin-deploy`): FREE - No cost for IAM
 - **S3 State Bucket** (`twin-terraform-state-*`): ~$0.02/month for storing state files
-- **DynamoDB Table** (`twin-terraform-locks`): ~$0.00/month with PAY_PER_REQUEST (only charges when used)
 
 **Total monthly cost if left running: Less than $0.05**
 
@@ -1634,7 +1614,6 @@ aws iam detach-role-policy --role-name github-actions-twin-deploy --policy-arn a
 aws iam detach-role-policy --role-name github-actions-twin-deploy --policy-arn arn:aws:iam::aws:policy/CloudFrontFullAccess
 aws iam detach-role-policy --role-name github-actions-twin-deploy --policy-arn arn:aws:iam::aws:policy/IAMReadOnlyAccess
 aws iam detach-role-policy --role-name github-actions-twin-deploy --policy-arn arn:aws:iam::aws:policy/AmazonBedrockFullAccess
-aws iam detach-role-policy --role-name github-actions-twin-deploy --policy-arn arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess
 aws iam detach-role-policy --role-name github-actions-twin-deploy --policy-arn arn:aws:iam::aws:policy/AWSCertificateManagerFullAccess
 aws iam detach-role-policy --role-name github-actions-twin-deploy --policy-arn arn:aws:iam::aws:policy/AmazonRoute53FullAccess
 aws iam delete-role-policy --role-name github-actions-twin-deploy --policy-name github-actions-additional
@@ -1644,9 +1623,6 @@ aws iam delete-role --role-name github-actions-twin-deploy
 AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
 aws s3 rm s3://twin-terraform-state-${AWS_ACCOUNT_ID} --recursive
 aws s3 rb s3://twin-terraform-state-${AWS_ACCOUNT_ID}
-
-# 3. Delete the DynamoDB table
-aws dynamodb delete-table --table-name twin-terraform-locks
 ```
 
 **Recommendation**: Leave these resources in place. They cost almost nothing and allow you to easily redeploy the project later if needed.
@@ -1684,7 +1660,7 @@ Each Environment:
 All Managed by:
     ├── Terraform (IaC)
     ├── GitHub Actions (CI/CD)
-    └── S3 + DynamoDB (State)
+    └── S3 (State + native locking)
 ```
 
 ### Key Skills You've Learned
@@ -1700,7 +1676,7 @@ All Managed by:
    - API management (API Gateway)
    - Static hosting (S3, CloudFront)
    - AI services (Bedrock)
-   - State management (DynamoDB)
+   - Remote state management (S3)
 
 3. **Security Best Practices**
    - OIDC authentication
@@ -1757,14 +1733,15 @@ All Managed by:
 
 ### GitHub Actions Failures
 
-**"Could not assume role"**
+**"Could not assume role" / "Not authorized to perform sts:AssumeRoleWithWebIdentity"**
 - Check AWS_ROLE_ARN secret is correct
 - Verify GitHub repository name matches OIDC configuration
 - Ensure role trust policy is correct
+- **Most common cause on new repos:** GitHub's July 2026 `sub` claim format change. Your trust policy needs to match `repo:owner@1234567/repo@7654321:environment:dev` as well as the old `repo:owner/repo:*`. The `github-oidc.tf` in Part 4 handles both; if you created your role before this change, see [Nico F.'s write-up](../community_contributions/week2_day5_oidc_issue.md) for how to inspect your real `sub` and patch the trust relationship.
 
 **"Terraform state lock"**
 - Someone else might be deploying
-- Check DynamoDB table for locks
+- Look for a leftover `.tflock` object next to your state file in the `twin-terraform-state-*` bucket
 - Force unlock if needed: `terraform force-unlock LOCK_ID`
 
 **"S3 bucket already exists"**

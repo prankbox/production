@@ -25,8 +25,9 @@ We need a date picker for the consultation form:
 
 ```bash
 npm install react-datepicker
-npm install --save-dev @types/react-datepicker
 ```
+
+> Older versions of these instructions also installed `@types/react-datepicker`. Don't - that package is now a deprecated stub, because `react-datepicker` ships its own TypeScript types.
 
 ## Step 2: Update the Backend API
 

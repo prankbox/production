@@ -39,7 +39,7 @@ We'll still set up budget alerts at $1, $5, and $10 to track spending. This is a
 **Lambda** is AWS's serverless compute service. It runs your code (or a container image, in our case) only when it's invoked, and you pay only for the compute time you use, billed in millisecond increments. Cold starts (the very first invocation) take a few seconds; warm invocations are fast. Lambda supports container images up to 10GB.
 
 ### Lambda Function URLs
-**Function URLs** are dedicated HTTPS endpoints that route directly to a Lambda function — no API Gateway needed, no extra cost. The URL looks like `https://<id>.lambda-url.<region>.on.aws/`. As of November 2025, Function URLs support response streaming, which is what we'll use to stream Server-Sent Events from FastAPI.
+**Function URLs** are dedicated HTTPS endpoints that route directly to a Lambda function — no API Gateway needed, no extra cost. The URL looks like `https://<id>.lambda-url.<region>.on.aws/`. Function URLs support response streaming, which is what we'll use to stream Server-Sent Events from FastAPI.
 
 ### AWS Lambda Web Adapter
 The **Lambda Web Adapter** is an open-source Lambda extension from AWS Labs. By dropping a single binary into your container at `/opt/extensions/lambda-adapter`, you can run any standard web framework (FastAPI, Flask, Express, etc.) on Lambda without modifying your application code. The adapter translates Lambda invocations into HTTP requests to your local web server (FastAPI listening on port 8000) and translates responses back. With response streaming enabled, it streams chunks as your FastAPI app yields them.
@@ -180,7 +180,7 @@ Open Terminal (Mac) or PowerShell (Windows):
 docker --version
 ```
 
-You should see: `Docker version 26.x.x` or similar
+You should see something like `Docker version 29.x.x` - any recent version is fine
 
 Test Docker:
 ```bash
@@ -411,7 +411,7 @@ WORKDIR /app
 # --- Lambda Web Adapter additions (the only changes vs. the video's Dockerfile) ---
 # Drops a Lambda extension binary into /opt/extensions. The binary is inert
 # unless invoked by the Lambda runtime, so local `docker run` is unaffected.
-COPY --from=public.ecr.aws/awsguru/aws-lambda-adapter:1.0.0 /lambda-adapter /opt/extensions/lambda-adapter
+COPY --from=public.ecr.aws/awsguru/aws-lambda-adapter:1.1.0 /lambda-adapter /opt/extensions/lambda-adapter
 
 # Tell the adapter which port FastAPI listens on
 ENV PORT=8000
@@ -979,7 +979,7 @@ Congratulations on deploying your healthcare SaaS to AWS Lambda. You've learned:
 1. **Docker basics** — containerizing applications
 2. **AWS fundamentals** — IAM, ECR, Lambda, Function URLs, CloudWatch
 3. **Production deployment** — security, monitoring, cost control
-4. **A future-proof container deployment pattern** that does not depend on App Runner (going away), AWS Copilot (going away June 12, 2026), or ECS Express Mode (more expensive than necessary for a single service)
+4. **A future-proof container deployment pattern** that does not depend on App Runner (closed to new customers), AWS Copilot (retired in June 2026), or ECS Express Mode (more expensive than necessary for a single service)
 
 This is how lean engineering teams ship containerized applications on AWS in 2026 — and the pattern scales from $0/month hobby project to production-grade workloads serving millions of requests per day.
 

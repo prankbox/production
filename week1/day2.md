@@ -29,7 +29,7 @@ A **Business Idea Generator** - an AI-powered SaaS application that:
 4. Create a new Next.js project with TypeScript. This command is a bit longer than the one I type in the video, to account for a recent change:  
 
 ```bash
-npx create-next-app saas --ts --eslint --tailwind --no-src-dir --no-app
+npx create-next-app saas --ts --eslint --tailwind --no-src-dir --no-app --no-import-alias --no-react-compiler
 ```
 
 This creates a new Next.js project with:
@@ -37,6 +37,8 @@ This creates a new Next.js project with:
 - **TypeScript** for type safety
 - **ESLint** for catching errors and enforcing code quality
 - **Tailwind CSS** for utility-first styling
+
+> The last two flags (`--no-import-alias --no-react-compiler`) just answer two newer questions that `create-next-app` would otherwise stop and ask you. If your version asks anything else (for example, whether to create an `AGENTS.md`), just accept the default by pressing Enter.
 
 ### Open Your Project
 
@@ -60,7 +62,7 @@ saas/
 ├── public/            # Static files (images, fonts, etc.)
 ├── package.json       # Node.js dependencies and scripts
 ├── tsconfig.json      # TypeScript configuration
-├── next.config.js     # Next.js configuration
+├── next.config.ts     # Next.js configuration
 └── node_modules/      # Installed packages (auto-generated)
 ```
 
@@ -348,6 +350,19 @@ The `prose` class requires the Typography plugin. Install it:
 ```bash
 npm install @tailwindcss/typography
 ```
+
+**IMPORTANT - you must also register the plugin, or `prose` will do nothing.** `create-next-app` now scaffolds **Tailwind CSS v4**, which has no `tailwind.config.js` file - plugins are registered from your CSS instead.
+
+Open `styles/globals.css` and add a `@plugin` line directly underneath the existing `@import` line at the very top of the file:
+
+```css
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+```
+
+Leave the rest of `globals.css` exactly as it is.
+
+> If you're curious how to tell which version you have: Tailwind v4 projects start `globals.css` with `@import "tailwindcss";` and have no `tailwind.config.js`. In the older v3, you'd instead add the plugin to the `plugins: []` array in `tailwind.config.js`.
 
 ### Update the Backend for Streaming
 

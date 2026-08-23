@@ -48,7 +48,7 @@ When you deploy projects, please make a new markdown file or python notebook in 
 3. A link to you live, deployed project, if available
 4. Anything about the experience that you'd like to share with other students
 
-Then submit a PR so I can include it in the repo! See (Guide 3 in the Guides folder)[guides/03_git_and_github.ipynb] for more on submitting a PR.
+Then submit a PR so I can include it in the repo! See [Guide 3 in the Guides folder](guides/03_git_and_github.ipynb) for more on submitting a PR.
 
 ### ABOVE ALL ELSE -
 

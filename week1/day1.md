@@ -192,8 +192,8 @@ You've successfully deployed your first API to production! Your API is now:
 - Try running `npm install -g vercel` again
 
 ### "Python version not supported"
-- Vercel supports Python 3.9, 3.10, 3.11, and 3.12
-- The default should work, but if you have issues, add a `runtime.txt` file with: `python-3.12`
+- Vercel's Python runtime offers 3.12 (the default), 3.13 and 3.14. Older versions like 3.9 and 3.11 are no longer available.
+- The default should work, but if you need to pin a version, add a `.python-version` file containing just `3.12` (Vercel also reads the version from `pyproject.toml` or `Pipfile.lock`). Note that `runtime.txt` is *not* used by Vercel.
 
 ### Deployment fails
 - Check that all three files (instant.py, requirements.txt, vercel.json) are in your project folder

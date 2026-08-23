@@ -334,7 +334,7 @@ async def chat(request: ChatRequest):
 
         # Call OpenAI API
         response = client.chat.completions.create(
-            model="gpt-4o-mini", 
+            model="gpt-5-nano", 
             messages=messages
         )
 
@@ -442,7 +442,7 @@ Replace `your_aws_account_id` with your actual AWS account ID (12 digits).
    - `AmazonAPIGatewayAdministrator` - For API Gateway
    - `CloudFrontFullAccess` - For CloudFront distribution
    - `IAMFullAccess` - To view roles
-   - `AmazonDynamoDBFullAccess_v2` - Needed on Day 4
+   - `AmazonDynamoDBFullAccess_v2` - no longer required (Day 5 used to need it for the Terraform lock table; it's harmless if you attach it anyway)
 5. Click **Create group**
 
 ### Step 4: Add User to Group

@@ -91,7 +91,7 @@ Deploy to production when ready:
 vercel --prod
 ```
 
-## What's Happening? >
+## What's Happening? 🤖
 
 Your app now:
 - Connects to OpenAI's API using your secure API key
@@ -99,13 +99,13 @@ Your app now:
 - Returns properly formatted HTML with the AI's response
 - Runs entirely serverless on Vercel's infrastructure
 
-## Congratulations! <�
+## Congratulations! 🎉
 
 You've successfully:
--  Integrated AI into a production application
--  Secured API credentials using environment variables
--  Created dynamic, personalized content
--  Built your first AI-powered web application
+- ✅ Integrated AI into a production application
+- ✅ Secured API credentials using environment variables
+- ✅ Created dynamic, personalized content
+- ✅ Built your first AI-powered web application
 
 ## What You've Learned:
 - How to securely manage API keys in production
@@ -135,7 +135,7 @@ You've successfully:
 - Subsequent requests should be faster
 - This is normal behavior for serverless functions
 
-## Security Note =
+## Security Note 🔒
 Your API key is:
 - Never exposed in your code
 - Securely stored in Vercel's environment variables

@@ -112,7 +112,7 @@ After installation, close and reopen your terminal, then verify:
 uv --version
 ```
 
-You should see a version number like `uv 0.8.18` or similar.
+You should see a version number like `uv 0.12.5` - any recent version is fine.
 
 ## Part 3: Create the Backend API
 
@@ -241,7 +241,7 @@ async def chat(request: ChatRequest):
 
         # Call OpenAI API
         response = client.chat.completions.create(
-            model="gpt-4o-mini", 
+            model="gpt-5-nano", 
             messages=messages
         )
 
@@ -714,7 +714,7 @@ async def chat(request: ChatRequest):
         
         # Call OpenAI API
         response = client.chat.completions.create(
-            model="gpt-4o-mini",
+            model="gpt-5-nano",
             messages=messages
         )
         

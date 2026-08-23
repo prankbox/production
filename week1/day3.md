@@ -51,7 +51,27 @@ In your terminal, install the Clerk SDK of v6 like `6.39.0`:
 npm install @clerk/nextjs@6.39.0
 ```
 
-Side note: The latest `@clerk/nextjs` version as of Mar 6, 2026 is 7.0.1.  The version 7.0.1 removed `SignedIn` and `SignedOut` calls that are required in the `page/index.tsx` of our `saas` project.  If you have already installed the latest `@clerk/nextjs` and saw the error `those components are not found` shown in red underlined, please confirm the version installed with the following first line and you should see the result as expected.
+**Why the version pin matters:** on March 3, 2026 Clerk released "Core 3" as `@clerk/nextjs` v7, and it **removed the three control components this course uses** - `SignedIn`, `SignedOut` and `Protect` - replacing all of them with a single `<Show>` component. If you install v7 (or just `@clerk/nextjs` with no version), the imports in `pages/index.tsx` and `pages/product.tsx` will fail with errors like `SignedIn is not available in @clerk/nextjs`.
+
+So please install exactly `6.39.0` as shown above. Version 6 is still fully supported and works with Next.js 16.
+
+If you'd rather use v7, everything in Days 3 and 4 still works - you just need these three substitutions everywhere:
+
+| Course code (v6) | Clerk v7 equivalent |
+| --- | --- |
+| `<SignedIn>…</SignedIn>` | `<Show when="signed-in">…</Show>` |
+| `<SignedOut>…</SignedOut>` | `<Show when="signed-out">…</Show>` |
+| `<Protect plan="premium_subscription">…</Protect>` | `<Show when={{ plan: 'premium_subscription' }}>…</Show>` |
+
+...and import `Show` from `@clerk/nextjs` instead of the three removed names. See Clerk's [Core 3 upgrade guide](https://clerk.com/docs/guides/development/upgrading/upgrade-guides/core-3).
+
+To confirm which version you actually installed:
+
+```bash
+npm list @clerk/nextjs
+```
+
+You should see `6.39.0`. If you see a 7.x version, run the `npm install @clerk/nextjs@6.39.0` command again.
 
 For handling streaming with authentication, also install:
 
@@ -346,7 +366,7 @@ vercel --prod
 
 Visit your production URL and test the complete authentication flow!
 
-NOTE - if you hit a problem with jwt token expiration, please see this [fix contributed by Artur P](../community_contributions/arturp_jwt_token_fix_notes.md)
+NOTE - if you hit a problem with jwt token expiration, please see this [fix contributed by Artur P](../community_contributions/jwt_token_60s_fix.md)
 
 ## What's Happening?
 
