@@ -30,6 +30,7 @@ Before setting up CI/CD, let's remove all existing environments to start fresh.
 We'll use the destroy scripts created on Day 4 to clean up dev, test, and prod environments.
 
 **Mac/Linux:**
+
 ```bash
 
 # Destroy dev environment
@@ -43,6 +44,7 @@ We'll use the destroy scripts created on Day 4 to clean up dev, test, and prod e
 ```
 
 **Windows (PowerShell):**
+
 ```powershell
 
 # Destroy dev environment
@@ -153,6 +155,7 @@ PROJECT_NAME=twin
 First, clean up any git repositories that might have been created by the tooling:
 
 **Mac/Linux:**
+
 ```bash
 cd twin
 
@@ -172,6 +175,7 @@ git config user.email "your.email@example.com"
 ```
 
 **Windows (PowerShell):**
+
 ```powershell
 cd twin
 
@@ -225,6 +229,7 @@ git push -u origin main
 ```
 
 If prompted for authentication:
+
 - Username: Your GitHub username
 - Password: Use a Personal Access Token (not your password)
   - Go to GitHub → Settings → Developer settings → Personal access tokens
@@ -286,7 +291,7 @@ output "state_bucket_name" {
 }
 ```
 
-### Step 2: Create Backend Resources - note 1 line is different for Mac/Linux or PC:
+### Step 2: Create Backend Resources - note 1 line is different for Mac/Linux or PC
 
 ```bash
 cd terraform
@@ -709,11 +714,13 @@ terraform workspace select default
 ```
 
 **Mac/Linux:**
+
 ```bash
 aws iam list-open-id-connect-providers | grep token.actions.githubusercontent.com
 ```
 
 **Windows (PowerShell):**
+
 ```powershell
 aws iam list-open-id-connect-providers | Select-String "token.actions.githubusercontent.com"
 ```
@@ -723,6 +730,7 @@ If it exists, you'll see an ARN like: `arn:aws:iam::123456789012:oidc-provider/t
 In that case, import it first:
 
 **Mac/Linux:**
+
 ```bash
 # Get your AWS Account ID
 AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
@@ -733,6 +741,7 @@ echo "Your AWS Account ID is: $AWS_ACCOUNT_ID"
 ```
 
 **Windows (PowerShell):**
+
 ```powershell
 # Get your AWS Account ID
 $awsAccountId = aws sts get-caller-identity --query Account --output text
@@ -755,12 +764,14 @@ For example: if your GitHub username is 'johndoe', use: `johndoe/digital-twin`
 **NOTE** Do not put a URL here - it should just be the Github username, not with "https://github.com/" at the front, or you will get cryptic errors!
 
 **Mac/Linux:**
+
 ```bash
 # Apply ALL resources including OIDC provider (this is one long command - copy and paste it all)
 terraform apply -target=aws_iam_openid_connect_provider.github -target=aws_iam_role.github_actions -target=aws_iam_role_policy_attachment.github_lambda -target=aws_iam_role_policy_attachment.github_s3 -target=aws_iam_role_policy_attachment.github_apigateway -target=aws_iam_role_policy_attachment.github_cloudfront -target=aws_iam_role_policy_attachment.github_iam_read -target=aws_iam_role_policy_attachment.github_bedrock -target=aws_iam_role_policy_attachment.github_acm -target=aws_iam_role_policy_attachment.github_route53 -target=aws_iam_role_policy.github_additional -var="github_repository=YOUR_GITHUB_USERNAME/digital-twin"
 ```
 
 **Windows (PowerShell):**
+
 ```powershell
 # Apply ALL resources including OIDC provider (this is one long command - copy and paste it all)
 terraform apply -target="aws_iam_openid_connect_provider.github" -target="aws_iam_role.github_actions" -target="aws_iam_role_policy_attachment.github_lambda" -target="aws_iam_role_policy_attachment.github_s3" -target="aws_iam_role_policy_attachment.github_apigateway" -target="aws_iam_role_policy_attachment.github_cloudfront" -target="aws_iam_role_policy_attachment.github_iam_read" -target="aws_iam_role_policy_attachment.github_bedrock" -target="aws_iam_role_policy_attachment.github_acm" -target="aws_iam_role_policy_attachment.github_route53" -target="aws_iam_role_policy.github_additional" -var="github_repository=YOUR_GITHUB_USERNAME/digital-twin"
@@ -775,12 +786,14 @@ If you ran the import command above, you've already imported the OIDC provider. 
 **⚠️ IMPORTANT**: Use the same repository name below that you used during import.
 
 **Mac/Linux:**
+
 ```bash
 # Apply ONLY the IAM role and policies (NOT the OIDC provider) - one long command
 terraform apply -target=aws_iam_role.github_actions -target=aws_iam_role_policy_attachment.github_lambda -target=aws_iam_role_policy_attachment.github_s3 -target=aws_iam_role_policy_attachment.github_apigateway -target=aws_iam_role_policy_attachment.github_cloudfront -target=aws_iam_role_policy_attachment.github_iam_read -target=aws_iam_role_policy_attachment.github_bedrock -target=aws_iam_role_policy_attachment.github_acm -target=aws_iam_role_policy_attachment.github_route53 -target=aws_iam_role_policy.github_additional -var="github_repository=YOUR_GITHUB_USERNAME/your-repo-name"
 ```
 
 **Windows (PowerShell):**
+
 ```powershell
 # Apply ONLY the IAM role and policies (NOT the OIDC provider) - one long command
 terraform apply -target="aws_iam_role.github_actions" -target="aws_iam_role_policy_attachment.github_lambda" -target="aws_iam_role_policy_attachment.github_s3" -target="aws_iam_role_policy_attachment.github_apigateway" -target="aws_iam_role_policy_attachment.github_cloudfront" -target="aws_iam_role_policy_attachment.github_iam_read" -target="aws_iam_role_policy_attachment.github_bedrock" -target="aws_iam_role_policy_attachment.github_acm" -target="aws_iam_role_policy_attachment.github_route53" -target="aws_iam_role_policy.github_additional" -var="github_repository=myrepo/digital-twin"
@@ -825,7 +838,7 @@ Everything we've built so far in Part 3 and Part 4 - the state bucket and the Gi
 
 Our scripts run `terraform init -input=false`, which can't answer that question. So the very first deployment would fail with:
 
-```
+```text
 Error: Can't ask approval for state migration when interactive input is disabled.
 Please remove the "-input=false" option and try again.
 ```
@@ -833,6 +846,7 @@ Please remove the "-input=false" option and try again.
 We don't want to migrate that state anyway - the state bucket and the IAM role are deliberately "bootstrap" resources that live outside Terraform from here on. So we simply discard the local state:
 
 **Mac/Linux:**
+
 ```bash
 cd terraform
 rm -f terraform.tfstate terraform.tfstate.backup
@@ -841,6 +855,7 @@ cd ..
 ```
 
 **Windows (PowerShell):**
+
 ```powershell
 cd terraform
 Remove-Item -Force -ErrorAction SilentlyContinue terraform.tfstate, terraform.tfstate.backup
@@ -859,21 +874,25 @@ cd ..
 3. In the left sidebar, click **Secrets and variables** → **Actions**
 4. Click **New repository secret** for each of these:
 
-**Secret 1: AWS_ROLE_ARN**
+#### Secret 1: AWS_ROLE_ARN
+
 - Name: `AWS_ROLE_ARN`
 - Value: The ARN from terraform output (like `arn:aws:iam::123456789012:role/github-actions-twin-deploy`)
 
-**Secret 2: DEFAULT_AWS_REGION**
+#### Secret 2: DEFAULT_AWS_REGION
+
 - Name: `DEFAULT_AWS_REGION`
 - Value: `us-east-1` (or your preferred region)
 
-**Secret 3: AWS_ACCOUNT_ID**
+#### Secret 3: AWS_ACCOUNT_ID
+
 - Name: `AWS_ACCOUNT_ID`
 - Value: Your 12-digit AWS account ID
 
 ### Step 6: Verify Secrets
 
 After adding all secrets, you should see 3 repository secrets:
+
 - AWS_ROLE_ARN
 - DEFAULT_AWS_REGION  
 - AWS_ACCOUNT_ID
@@ -1141,6 +1160,7 @@ If you have a custom domain configured:
 ### Step 4: Verify Deployments
 
 After each deployment completes:
+
 1. Check the workflow summary for the CloudFront URL
 2. Visit the URL to test your Digital Twin
 3. Have a conversation to verify it's working
@@ -1636,10 +1656,11 @@ To see what's actually costing money:
 ### Step 5: Optional - Clean Up GitHub Actions Resources
 
 The remaining resources have minimal ongoing costs:
+
 - **IAM Role** (`github-actions-twin-deploy`): FREE - No cost for IAM
 - **S3 State Bucket** (`twin-terraform-state-*`): ~$0.02/month for storing state files
 
-**Total monthly cost if left running: Less than $0.05**
+**Total monthly cost if left running:** Less than $0.05
 
 If you want to completely remove everything (only do this if you're completely done with the course):
 
@@ -1681,7 +1702,7 @@ You've successfully completed Week 2 and built a production-grade AI deployment 
 
 ### Your Final Architecture
 
-```
+```text
 GitHub Repository
     ↓ (Push to main)
 GitHub Actions (CI/CD)
@@ -1735,6 +1756,7 @@ All Managed by:
 ### Development Workflow
 
 1. **Always use branches for features** (even though we didn't today)
+
    ```bash
    git checkout -b feature/new-feature
    # Make changes
@@ -1773,34 +1795,40 @@ All Managed by:
 
 ### GitHub Actions Failures
 
-**"Could not assume role" / "Not authorized to perform sts:AssumeRoleWithWebIdentity"**
+#### "Could not assume role" / "Not authorized to perform sts:AssumeRoleWithWebIdentity"
+
 - Check AWS_ROLE_ARN secret is correct
 - Verify GitHub repository name matches OIDC configuration
 - Ensure role trust policy is correct
 - **Most common cause on new repos:** GitHub's July 2026 `sub` claim format change. Your trust policy needs to match `repo:owner@1234567/repo@7654321:environment:dev` as well as the old `repo:owner/repo:*`. The `github-oidc.tf` in Part 4 handles both; if you created your role before this change, see [Nico F.'s write-up](../community_contributions/week2_day5_oidc_issue.md) for how to inspect your real `sub` and patch the trust relationship.
 
-**"Terraform state lock"**
+#### "Terraform state lock"
+
 - Someone else might be deploying
 - Look for a leftover `.tflock` object next to your state file in the `twin-terraform-state-*` bucket
 - Force unlock if needed: `terraform force-unlock LOCK_ID`
 
-**"S3 bucket already exists"**
+#### "S3 bucket already exists"
+
 - Bucket names must be globally unique
 - Add random suffix or use account ID
 
 ### Deployment Issues
 
-**Frontend not updating**
+#### Frontend not updating
+
 - CloudFront cache needs invalidation
 - Check GitHub Actions ran successfully
 - Verify S3 sync completed
 
-**API returning 403**
+#### API returning 403
+
 - Check CORS configuration
 - Verify API Gateway deployment
 - Check Lambda permissions
 
-**Bedrock not responding**
+#### Bedrock not responding
+
 - Verify model access is granted
 - Check IAM role has Bedrock permissions
 - Review CloudWatch logs
@@ -1842,6 +1870,7 @@ All Managed by:
 ### Keeping Costs Low
 
 To minimize ongoing costs:
+
 1. Destroy environments when not in use
 2. Use Nova Micro for development
 3. Set API rate limiting
@@ -1851,6 +1880,7 @@ To minimize ongoing costs:
 ### Repository Maintenance
 
 Keep your repository healthy:
+
 1. Regular dependency updates
 2. Security scanning with Dependabot
 3. Clear documentation

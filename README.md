@@ -15,7 +15,7 @@ I could not be more excited to welcome you to my juiciest course yet!!
 
 ### Before you begin
 
-I'm here to help you be most successful! Please do reach out if I can help, either in the platform or by emailing me direct (ed@edwarddonner.com). It's always great to connect with people on LinkedIn to build up the community. If you post about your progress with the course, or share projects - then please tag me and I'll weigh in to amplify your achievements:    
+I'm here to help you be most successful! Please do reach out if I can help, either in the platform or by emailing me direct (ed@edwarddonner.com). It's always great to connect with people on LinkedIn to build up the community. If you post about your progress with the course, or share projects - then please tag me and I'll weigh in to amplify your achievements:
 https://www.linkedin.com/in/eddonner/  
 I'm also trying out X at [@edwarddonner](https://x.com/edwarddonner) - if you're on X, please show me how it's done 😂  
 
@@ -38,7 +38,6 @@ I'm also trying out X at [@edwarddonner](https://x.com/edwarddonner) - if you're
 
 Weeks 3 and 4 are in separate repos - the README in each week folder tells you exactly where to go and which file to open.
 
-
 ### The deal you made
 
 At the end of Day 1 in the course, I cunningly got you to agree to my terms!!
@@ -56,6 +55,7 @@ But do reach out and I'll try my very best..
 ### Making contributions
 
 When you deploy projects, please make a new markdown file or python notebook in the community_contributions folder:
+
 1. A short description of your project
 2. A link to your repo
 3. A link to you live, deployed project, if available

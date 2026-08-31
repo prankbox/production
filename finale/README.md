@@ -24,7 +24,7 @@ You're all pros now, so you get pro-level instructions!
 
 Also as of today: you'd need Bedrock access to Anthropic's Claude Sonnet 4.6, which is what the Strands Agents SDK now uses by default (via the `global.anthropic.claude-sonnet-4-6` cross-region inference profile, so it isn't tied to one region). If you hit a quota or access error, check Bedrock quotas in your region - see Q42 on [my FAQ](https://edwarddonner.com/faq).
 
-#### Now sign in as your IAM user.
+#### Now sign in as your IAM user
 
 1. Navigate to AWS Bedrock AgentCore
 2. Select Observability in the sidebar
@@ -60,6 +60,7 @@ For this lesson, the starter toolkit still works fine and it's what the videos u
 ### Step 3 - introducing the uv project in this folder
 
 I have added just a few dependencies to this project:  
+
 - bedrock-agentcore
 - strands-agents
 - bedrock-agentcore-starter-toolkit
@@ -121,7 +122,7 @@ NOTE FROM ANDY C.:
 > `uv run agentcore configure -e first.py --region us-west-2`  
 > Once I did that, everything in the AgentCore lesson went without a hitch. It was so fun and easy!
 
-Andy's tip is still the fix if you get region-related errors. It's less likely to bite you now that Strands defaults to a *global* cross-region inference profile for Claude, but AgentCore Runtime itself is regional - so if your default region doesn't have it, pass `--region us-west-2` as Andy shows.
+Andy's tip is still the fix if you get region-related errors. It's less likely to bite you now that Strands defaults to a _global_ cross-region inference profile for Claude, but AgentCore Runtime itself is regional - so if your default region doesn't have it, pass `--region us-west-2` as Andy shows.
 
 After you run the command (my one, or use Andy's flag if your Bedrock is in a different region):  
 
@@ -132,6 +133,7 @@ And then...
 `uv run agentcore invoke '{"prompt": "Hello can you hear me??"}'`
 
 Goodness! Do you realize everything that happened:  
+
 - AgentCore built a container
 - AgentCore deployed it to ECR
 - AgentCore set up all the IAM
@@ -161,7 +163,7 @@ And then:
 
 That's tool use!!
 
-### Step 7 ###
+### Step 7
 
 And now - a new, more powerful agent - the looper!
 
@@ -331,7 +333,6 @@ What fun!
 4. Examine your agents, sessions and traces
 5. I'm intrigued to see how it retried with throttling issues, explaining why it was so slow..
 
-## AND THAT'S IT! Agent deployment in minutes.
+## AND THAT'S IT! Agent deployment in minutes
 
 Your assignment: keep going! How about adding a NextJS frontend, add the other tool (browser automation), make this into a full personal Sidekick!
-

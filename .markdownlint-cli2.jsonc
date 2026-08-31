@@ -1,0 +1,45 @@
+// markdownlint configuration for the course materials.
+//   markdownlint-cli2 "**/*.md"          -> check
+//   markdownlint-cli2 --fix "**/*.md"    -> auto-repair what is mechanical
+//
+// Rules are switched off here only where the default conflicts with how these
+// lessons are deliberately written. Each exception records why.
+{
+  "config": {
+    "default": true,
+
+    // MD013 line-length: disabled. These are prose lesson notes, not code.
+    // Hard-wrapping paragraphs at 80 columns makes every one-word edit reflow
+    // the whole paragraph, which destroys the signal in git diffs.
+    "MD013": false,
+
+    // MD024 no-duplicate-heading: only flag duplicates that share a parent.
+    // Repeating "Open in Cursor" under two different weeks is correct structure.
+    "MD024": { "siblings_only": true },
+
+    // MD026 no-trailing-punctuation: strip a trailing ".,;:" from headings, but
+    // keep the exclamation mark. Emphatic headings such as "INSTANT
+    // GRATIFICATION" are deliberate authorial voice, not punctuation mistakes.
+    "MD026": { "punctuation": ".,;:" },
+
+    // MD029 ol-prefix: disabled. The lessons deliberately continue one numbered
+    // procedure across intervening headings, notes and code blocks (week1/day5.md
+    // "Step 3" runs 1-11 that way). CommonMark honours that as <ol start="5">, so
+    // renumbering the prefixes silently restarts every such run at 1 and
+    // desynchronises the steps from the prose that refers to them.
+    "MD029": false,
+
+    // MD033 no-inline-html: the lessons use <span style> for red callouts and
+    // <br> for spacing. Allow that small, deliberate set.
+    "MD033": { "allowed_elements": ["span", "br", "img", "details", "summary"] },
+
+    // MD034 no-bare-urls: console output and log excerpts pasted into the
+    // lessons contain bare URLs that must stay verbatim.
+    "MD034": false
+  },
+  "ignores": [
+    "**/node_modules/**",
+    "**/.venv/**",
+    "**/site-packages/**"
+  ]
+}

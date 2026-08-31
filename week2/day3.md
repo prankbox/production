@@ -62,6 +62,7 @@ Since we need to modify IAM permissions, sign in as the root user:
 6. Click **Attach policies**
 
 Your TwinAccess group now has these policies:
+
 - AWSLambda_FullAccess
 - AmazonS3FullAccess  
 - AmazonAPIGatewayAdministrator
@@ -77,9 +78,9 @@ Your TwinAccess group now has these policies:
 1. Sign out from the root account
 2. Sign back in as `aiengineer` with your IAM credentials
 
-## Part 2: Request Access to Nova Models - THIS HAS CHANGED! PLEASE READ CAREFULLY.
+## Part 2: Request Access to Nova Models - THIS HAS CHANGED! PLEASE READ CAREFULLY
 
-**VERY IMPORTANT HEADS UP - Amazon Bedrock models, quotas and inference profiles**
+### VERY IMPORTANT HEADS UP - Amazon Bedrock models, quotas and inference profiles
 
 As of 2026, AWS has changed its approach for model access:
 
@@ -87,10 +88,11 @@ As of 2026, AWS has changed its approach for model access:
 2. AWS now has a quota-based system for how much you can use each model; sometimes you need to request quotas
 3. Model names have changed
 
-In the videos, I use Bedrock model ids like this:   
+In the videos, I use Bedrock model ids like this:
 `amazon.nova-lite-v1:0`  
 
 There are 2 problems with this:  
+
 1. Nova has now updated to version 2: `amazon.nova-2-lite-v1:0`  
 2. It is better to use a different kind of model name known as a "cross-region inference profile" that contains a prefix, like `global.amazon.nova-2-lite-v1:0`
 
@@ -123,6 +125,7 @@ The Nova models offer different price points based on their capabilities:
 For current pricing details, visit: [AWS Bedrock Pricing](https://aws.amazon.com/bedrock/pricing/)
 
 The pricing page will show you:
+
 - Cost per 1,000 input tokens
 - Cost per 1,000 output tokens
 - Comparison with other available models
@@ -136,7 +139,7 @@ Generally, Nova Micro and Lite are very cost-effective options for most conversa
 
 Update `twin/backend/requirements.txt` - remove the openai package since we're not using it:
 
-```
+```text
 fastapi
 uvicorn
 python-dotenv
@@ -409,6 +412,7 @@ if __name__ == "__main__":
 ### Model ID Options
 
 You can change `BEDROCK_MODEL_ID` to any of these. Always keep the inference profile prefix (`global.`, or `us.` / `eu.` / `jp.`), as described in the Heads Up at the top:  
+
 - `global.amazon.nova-2-lite-v1:0` - the current generation, and what we use (recommended)
 - `global.amazon.nova-micro-v1:0` - previous generation, text only, fastest and cheapest
 - `global.amazon.nova-pro-v1:0` - previous generation, most capable but more expensive
@@ -441,7 +445,7 @@ This creates a new `lambda-deployment.zip` with the updated dependencies.
 
 We'll upload your code via S3, which is more reliable for larger packages and slower connections.
 
-**Mac/Linux:**
+#### Mac/Linux
 
 ```bash
 # Load environment variables
@@ -471,7 +475,7 @@ aws s3 rm s3://$DEPLOY_BUCKET/lambda-deployment.zip
 aws s3 rb s3://$DEPLOY_BUCKET
 ```
 
-**Windows (PowerShell): starting in the project root**
+#### Windows (PowerShell): starting in the project root
 
 ```powershell
 # Load environment variables
@@ -506,7 +510,7 @@ aws s3 rm s3://$deployBucket/lambda-deployment.zip
 aws s3 rb s3://$deployBucket
 ```
 
-**Alternative: Direct Upload (for fast connections only)**
+#### Alternative: Direct Upload (for fast connections only)
 
 If you have a fast, stable connection, you can upload directly:
 
@@ -518,6 +522,7 @@ aws lambda update-function-code \
 ```
 
 **Note**: The S3 method is recommended because:
+
 - S3 uploads can resume if interrupted
 - AWS Lambda pulls directly from S3 (faster than uploading through CLI)
 - Works better with corporate firewalls and VPNs
@@ -602,25 +607,29 @@ Let's create a dashboard to monitor everything at a glance:
 2. Name: `twin-monitoring`
 3. Add widgets:
 
-**Widget 1: Lambda Invocations**
+#### Widget 1: Lambda Invocations
+
 - Widget type: Line
 - Metric: Lambda → twin-api → Invocations
 - Statistic: Sum
 - Period: 5 minutes
 
-**Widget 2: Lambda Duration**
+#### Widget 2: Lambda Duration
+
 - Widget type: Line  
 - Metric: Lambda → twin-api → Duration
 - Statistic: Average
 - Period: 5 minutes
 
-**Widget 3: Lambda Errors**
+#### Widget 3: Lambda Errors
+
 - Widget type: Number
 - Metric: Lambda → twin-api → Errors
 - Statistic: Sum
 - Period: 1 hour
 
-**Widget 4: Bedrock Invocations**
+#### Widget 4: Bedrock Invocations
+
 - Widget type: Line
 - Metric: AWS/Bedrock → Your Model → Invocations
 - Statistic: Sum
@@ -677,7 +686,7 @@ After testing each model, check CloudWatch:
 1. Go to CloudWatch → Log groups → `/aws/lambda/twin-api`
 2. Use Log Insights with this query:
 
-```
+```text
 fields @timestamp, @duration
 | filter @type = "REPORT"
 | stats avg(@duration) as avg_duration,
@@ -747,6 +756,7 @@ If responses are slow:
 ### Estimated Monthly Costs
 
 Your costs will depend on:
+
 - Number of conversations per month
 - Average conversation length
 - Choice of Nova model
@@ -768,7 +778,7 @@ Check the [AWS Bedrock Pricing](https://aws.amazon.com/bedrock/pricing/) page an
 
 Your updated architecture:
 
-```
+```text
 User Browser
     ↓ HTTPS
 CloudFront (CDN)
@@ -784,6 +794,7 @@ Lambda Function (Backend)
 ```
 
 All services now stay within AWS, providing:
+
 - Lower latency (no external API calls)
 - Better security (IAM integration)
 - Potential cost savings
@@ -792,6 +803,7 @@ All services now stay within AWS, providing:
 ## Next Steps
 
 Tomorrow (Day 4), we'll:
+
 - Introduce Infrastructure as Code with Terraform
 - Automate the entire deployment process
 - Implement environment management (dev/staging/prod)

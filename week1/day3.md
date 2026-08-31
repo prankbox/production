@@ -7,6 +7,7 @@ Today you'll add enterprise-grade authentication to your Business Idea Generator
 ## What You'll Build
 
 An authenticated version of your app that:
+
 - Requires users to sign in before accessing the idea generator
 - Supports multiple authentication providers (Google, GitHub, Email)
 - Passes secure JWT tokens to your backend
@@ -21,7 +22,6 @@ An authenticated version of your app that:
 ## IMPORTANT Note - added since the videos
 
 In some situations, if your app takes longer than 60 seconds to respond to a request, it's possible that you experience a Timeout error. You'll see in the browser's Javascript Console that you're getting a 403 error. The fix for this is in community_contributions explained in the file jwt_token_60s_fix.md. Look out for this 403 timeout after 60 seconds, and if it happens, please see the fix. Thanks!
-
 
 ## Part 1: User Authentication
 
@@ -270,6 +270,7 @@ export default function Home() {
 ### Step 8: Configure Backend Authentication
 
 First, get your JWKS URL from Clerk:
+
 1. Go to your Clerk Dashboard
 2. Click **Configure** (top nav)
 3. Click **API Keys** (side nav)  
@@ -278,6 +279,7 @@ First, get your JWKS URL from Clerk:
 **What is JWKS?** The JWKS (JSON Web Key Set) URL is a public endpoint that contains Clerk's public keys. When a user signs in, Clerk creates a JWT (JSON Web Token) - a digitally signed token that proves the user's identity. Your Python backend uses the JWKS URL to fetch Clerk's public keys and verify that incoming JWT tokens are genuine and haven't been tampered with. This allows secure authentication without your backend needing to contact Clerk for every request - it can verify tokens independently using cryptographic signatures.
 
 Add to `.env.local` and save:
+
 ```bash
 CLERK_JWKS_URL=your_jwks_url_here
 ```
@@ -286,7 +288,7 @@ CLERK_JWKS_URL=your_jwks_url_here
 
 Add the Clerk authentication library to `requirements.txt`:
 
-```
+```text
 fastapi
 uvicorn
 openai
@@ -342,16 +344,19 @@ Add your Clerk keys to Vercel:
 ```bash
 vercel env add NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
 ```
+
 Paste your publishable key and select all environments.
 
 ```bash
 vercel env add CLERK_SECRET_KEY
 ```
+
 Paste your secret key and select all environments except for development.
 
 ```bash
 vercel env add CLERK_JWKS_URL
 ```
+
 Paste your JWKS URL and select all environments except for development.
 
 ### Step 12: Deploy to Production
@@ -369,6 +374,7 @@ NOTE - if you hit a problem with jwt token expiration, please see this [fix cont
 ## What's Happening?
 
 Your app now has:
+
 - **Secure authentication**: Users must sign in to access your product
 - **Client-side route protection**: Unauthenticated users are redirected from protected pages
 - **JWT verification**: Every API request is verified using cryptographic signatures
@@ -391,21 +397,25 @@ This architecture keeps your Next.js deployment simple (static/client-side only)
 ## Troubleshooting
 
 ### "Unauthorized" errors
+
 - Check that all three environment variables are set correctly in Vercel
 - Ensure the JWKS URL is copied correctly from Clerk
 - Verify you're signed in before accessing `/product`
 
 ### Sign-in modal not appearing
+
 - Check that `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` starts with `pk_`
 - Ensure you've wrapped your app with `ClerkProvider`
 - Clear browser cache and cookies
 
 ### API not authenticating
+
 - Verify `CLERK_JWKS_URL` is set in your environment
 - Check that `fastapi-clerk-auth` is in requirements.txt
 - Ensure the JWT token is being sent in the Authorization header
 
 ### Local development issues
+
 - Make sure `.env.local` has all three Clerk variables
 - Restart your dev server after adding environment variables
 - Try clearing Next.js cache: `rm -rf .next`
@@ -413,6 +423,7 @@ This architecture keeps your Next.js deployment simple (static/client-side only)
 ## Next Steps
 
 Congratulations! You've added professional authentication to your SaaS. In Part 2, we'll add:
+
 - Subscription tiers with Stripe
 - Usage limits based on subscription level
 - Payment processing

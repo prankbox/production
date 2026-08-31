@@ -19,12 +19,14 @@ Today, we'll start by building a local version that showcases a fundamental chal
 In Week 1, we used Next.js with the **Pages Router**. This week, we're using the **App Router**. Here's what you need to know:
 
 ### Pages Router (Week 1)
+
 - Files in `pages/` directory become routes
 - `pages/index.tsx` → `/`
 - `pages/product.tsx` → `/product`
 - Uses `getServerSideProps` for data fetching
 
 ### App Router (Week 2)
+
 - Files in `app/` directory define routes
 - `app/page.tsx` → `/`
 - `app/about/page.tsx` → `/about`
@@ -58,7 +60,8 @@ In Cursor's file explorer (the left sidebar):
 3. Right-click again and select **New Folder** and name it `memory`
 
 Your project structure should now look like:
-```
+
+```text
 twin/
 ├── backend/
 └── memory/
@@ -85,7 +88,8 @@ After it completes, create a components directory using Cursor's file explorer:
 3. Select **New Folder** and name it `components`
 
 ✅ **Checkpoint**: Your project structure should look like:
-```
+
+```text
 twin/
 ├── backend/
 ├── frontend/
@@ -107,16 +111,19 @@ Visit the uv installation guide: [https://docs.astral.sh/uv/getting-started/inst
 **Quick installation:**
 
 **Mac/Linux:**
+
 ```bash
 curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
 **Windows (PowerShell):**
+
 ```powershell
 powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
 ```
 
 After installation, close and reopen your terminal, then verify:
+
 ```bash
 uv --version
 ```
@@ -129,7 +136,7 @@ You should see a version number like `uv 0.12.5` - any recent version is fine.
 
 Create `backend/requirements.txt`:
 
-```
+```text
 fastapi
 uvicorn
 openai
@@ -160,7 +167,7 @@ Also, it's a good practice in case you ever decide to push this repo to github:
 
 Create `backend/me.txt` with a description of who your digital twin represents. For example:
 
-```
+```text
 You are a chatbot acting as a "Digital Twin", representing [Your Name] on [Your Name]'s website,
 and engaging with visitors to the website.
 
@@ -581,7 +588,8 @@ uv run uvicorn server:app --reload
 ```
 
 You should see something like this at the end:
-```
+
+```text
 INFO:     Uvicorn running on http://127.0.0.1:8000
 INFO:     Application startup complete.
 ```
@@ -596,7 +604,8 @@ npm run dev
 ```
 
 You should see:
-```
+
+```text
 ▲ Next.js 16.x.x
 Local: http://localhost:3000
 ```
@@ -797,7 +806,7 @@ You'll see files like `abc123-def456-....json` containing the full conversation 
 
 ### The Architecture
 
-```
+```text
 User Browser → Next.js Frontend → FastAPI Backend → OpenAI API
                      ↑                    ↓
                      └──── Memory Files ←─┘
@@ -824,6 +833,7 @@ User Browser → Next.js Frontend → FastAPI Backend → OpenAI API
 ## Congratulations! 🎉
 
 You've successfully built your first AI Digital Twin with:
+
 - ✅ A responsive chat interface
 - ✅ Integration with OpenAI's API
 - ✅ Persistent conversation memory
@@ -840,19 +850,23 @@ You've successfully built your first AI Digital Twin with:
 ## Troubleshooting
 
 ### "Connection refused" error
+
 - Make sure both backend and frontend servers are running
 - Check that the backend is on port 8000 and frontend on port 3000
 
 ### OpenAI API errors
+
 - Verify your API key is correct in `backend/.env`
 - Check you have credits in your OpenAI account
 
 ### Memory not persisting
+
 - Ensure the `memory/` directory exists
 - Check file permissions if on Linux/Mac
 - Look for `.json` files in the memory directory
 
 ### Frontend not updating
+
 - Clear your browser cache
 - Make sure you saved all files
 - Check the browser console for errors
@@ -860,6 +874,7 @@ You've successfully built your first AI Digital Twin with:
 ## Next Steps
 
 Tomorrow (Day 2), we'll:
+
 - Add personalization with custom data and documents
 - Deploy the backend to AWS Lambda
 - Set up CloudFront for global distribution

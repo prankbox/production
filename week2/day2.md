@@ -63,7 +63,7 @@ Create `backend/data/facts.json` with information about who your twin represents
 
 Create `backend/data/summary.txt` with a personal summary:
 
-```
+```text
 I am a [your profession] with [X years] of experience in [your field]. 
 My expertise includes [key areas of expertise].
 
@@ -74,7 +74,7 @@ My background includes [relevant experience highlights].
 
 Create `backend/data/style.txt` with communication style notes:
 
-```
+```text
 Communication style:
 - Professional but approachable
 - Focus on practical solutions
@@ -87,6 +87,7 @@ Communication style:
 Please note: recently, LinkedIn has started to limit which kinds of account can export their profile as a PDF. If this feature isn't available to you, simply print your profile to PDF, or use a PDF resume instead.
 
 Save your LinkedIn profile as a PDF:
+
 1. Go to your LinkedIn profile
 2. Click "More" → "Save to PDF"
 3. Save as `backend/data/linkedin.pdf`
@@ -190,7 +191,7 @@ Avoid responding in a way that feels like a chatbot or AI assistant, and don't e
 
 Update `backend/requirements.txt`:
 
-```
+```text
 fastapi
 uvicorn
 openai
@@ -545,7 +546,7 @@ if __name__ == "__main__":
 
 Add to your `.gitignore`:
 
-```
+```text
 lambda-deployment.zip
 lambda-package/
 ```
@@ -576,20 +577,21 @@ This creates `lambda-deployment.zip` containing your Lambda function and all dep
 
 ### Step 2: Upload Your Code
 
-**Option A: Direct Upload (for fast connections)**
+#### Option A: Direct Upload (for fast connections)
 
 1. In the Lambda function page, under **Code source**
 2. Click **Upload from** → **.zip file**
 3. Click **Upload** and select your `backend/lambda-deployment.zip`
 4. Click **Save**
 
-**Option B: Upload via S3 (recommended for files >10MB or slow connections)**
+#### Option B: Upload via S3 (recommended for files >10MB or slow connections)
 
 This method is more reliable for larger packages and slower internet connections:
 
 1. First, create a temporary S3 bucket for deployment:
 
    **Mac/Linux:**
+
    ```bash
    # Create a unique bucket name with timestamp
    DEPLOY_BUCKET="twin-deploy-$(date +%s)"
@@ -605,6 +607,7 @@ This method is more reliable for larger packages and slower internet connections
    ```
 
    **Windows (PowerShell):**
+
    ```powershell
    # Create a unique bucket name with timestamp
    $timestamp = Get-Date -Format "yyyyMMddHHmmss"
@@ -628,6 +631,7 @@ This method is more reliable for larger packages and slower internet connections
 6. After successful upload, clean up the temporary bucket:
 
    **Mac/Linux:**
+
    ```bash
    # Delete the file and bucket (replace with your bucket name)
    aws s3 rm s3://$DEPLOY_BUCKET/lambda-deployment.zip
@@ -635,6 +639,7 @@ This method is more reliable for larger packages and slower internet connections
    ```
 
    **Windows (PowerShell):**
+
    ```powershell
    # Delete the file and bucket (replace with your bucket name)
    aws s3 rm s3://$deployBucket/lambda-deployment.zip
@@ -642,6 +647,7 @@ This method is more reliable for larger packages and slower internet connections
    ```
 
 **Note**: The S3 upload method is particularly useful because:
+
 - S3 uploads can resume if interrupted
 - AWS Lambda pulls directly from S3 (faster than uploading through browser)
 - You can use multipart uploads for better reliability
@@ -678,6 +684,7 @@ This method is more reliable for larger packages and slower internet connections
    - Event name: `HealthCheck`
    - Event template: **API Gateway AWS Proxy** (scroll down to find it)
    - Modify the Event JSON to:
+
    ```json
    {
      "version": "2.0",
@@ -702,6 +709,7 @@ This method is more reliable for larger packages and slower internet connections
      "isBase64Encoded": false
    }
    ```
+
 3. Click **Save** → **Test**
 4. You should see a successful response with a body containing `{"status": "healthy", "use_s3": true}`
 
@@ -799,6 +807,7 @@ This method is more reliable for larger packages and slower internet connections
 2. You'll see a default route already created. Click **Add route** to add more:
 
 **Existing route (update it):**
+
 - Method: `ANY`
 - Resource path: `/{proxy+}`
 - Integration target: `twin-api` (should already be selected)
@@ -806,21 +815,25 @@ This method is more reliable for larger packages and slower internet connections
 **Add these additional routes (click Add route for each):**
 
 Route 1:
+
 - Method: `GET`
 - Resource path: `/`
 - Integration target: `twin-api`
 
 Route 2:
+
 - Method: `GET`
 - Resource path: `/health`
 - Integration target: `twin-api`
 
 Route 3:
+
 - Method: `POST`
 - Resource path: `/chat`
 - Integration target: `twin-api`
 
 Route 4 (for CORS):
+
 - Method: `OPTIONS`
 - Resource path: `/{proxy+}`
 - Integration target: `twin-api`
@@ -989,9 +1002,8 @@ While waiting for CloudFront to deploy, update your Lambda to accept requests fr
    - Current value: `*`
    - New value: `https://YOUR-CLOUDFRONT-DOMAIN.cloudfront.net`
    - Example: `https://d1234abcd.cloudfront.net`
-   - <span style="color:#dd2222;">REALLY IMPORTANT - you need to be SUPER careful with this. This URL needs to be correct. If not, you will waste HOURS trying to debug weird errors, and you will get irritated, and you'll send me angry messages in Udemy 😂. To avoid that - please get this URL right!! It needs to start with "https://". It must not have a trailing "/". It needs to look just like the example above.<span>
+   - <span style="color:#dd2222;">REALLY IMPORTANT - you need to be SUPER careful with this. This URL needs to be correct. If not, you will waste HOURS trying to debug weird errors, and you will get irritated, and you'll send me angry messages in Udemy 😂. To avoid that - please get this URL right!! It needs to start with "https://". It must not have a trailing "/". It needs to look just like the example above.</span>
 4. Click **Save**
-
 
 ### <span style="color:#dd2222;">Now say out loud:</span>  
 
@@ -1071,7 +1083,7 @@ If you see CORS errors in browser console:
 
 ## Understanding the Architecture
 
-```
+```text
 User Browser
     ↓ HTTPS
 CloudFront (CDN)
@@ -1124,6 +1136,7 @@ Lambda Function (Backend)
 ## Next Steps
 
 Tomorrow (Day 3), we'll:
+
 - Replace OpenAI with AWS Bedrock for AI responses
 - Add advanced memory features
 - Implement conversation analytics

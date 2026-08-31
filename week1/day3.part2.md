@@ -7,6 +7,7 @@ Now let's add subscription tiers to your Business Idea Generator, turning it int
 ## What You'll Build
 
 An enhanced version of your app that:
+
 - Requires a paid subscription to access the idea generator
 - Shows a beautiful pricing table to non-subscribers
 - Handles payment processing through Clerk Billing
@@ -288,6 +289,7 @@ vercel --prod
 ### Managing Subscriptions
 
 Users can manage their subscriptions through the UserButton menu:
+
 1. Click on their profile picture (UserButton)
 2. Select **Manage account**
 3. Navigate to **Subscriptions**
@@ -296,6 +298,7 @@ Users can manage their subscriptions through the UserButton menu:
 ## What's Happening?
 
 Your app now has:
+
 - **Subscription Gate**: Users must have an active subscription to access the product
 - **Pricing Table**: Beautiful, Clerk-managed pricing display
 - **Payment Processing**: Handled entirely by Clerk (with Stripe integration if configured)
@@ -313,21 +316,25 @@ Your app now has:
 ## Troubleshooting
 
 ### "Plan not found" error
+
 - Ensure the plan key is exactly `premium_subscription`
 - Check that billing is enabled in Clerk Dashboard
 - Verify the plan is active (not archived)
 
 ### Pricing table not showing
+
 - Clear browser cache and cookies
 - Check that `@clerk/nextjs` is up to date
 - Ensure billing is enabled in your Clerk application
 
 ### Always seeing the pricing table (even after subscribing)
+
 - Check the user's subscription status in Clerk Dashboard
 - Verify the plan key matches exactly
 - Try signing out and back in
 
 ### Payment not working
+
 - This is normal if you haven't connected a payment provider
 - Clerk will simulate subscriptions in test mode
 - For real payments, connect Stripe in Billing Settings
@@ -337,6 +344,7 @@ Your app now has:
 ### Different Plan Tiers
 
 You can create multiple plans in Clerk Dashboard:
+
 ```typescript
 <Protect
     plan={["basic_plan", "premium_plan", "enterprise_plan"]}
@@ -349,6 +357,7 @@ You can create multiple plans in Clerk Dashboard:
 ### Custom Pricing Table
 
 Instead of Clerk's default PricingTable, you can build your own:
+
 ```typescript
 <Protect
     plan="premium_subscription"
@@ -361,6 +370,7 @@ Instead of Clerk's default PricingTable, you can build your own:
 ### Usage Limits
 
 Track API usage per user in your backend:
+
 ```python
 @app.get("/api")
 def idea(creds: HTTPAuthorizationCredentials = Depends(clerk_guard)):
@@ -379,6 +389,7 @@ def idea(creds: HTTPAuthorizationCredentials = Depends(clerk_guard)):
 ## Next Steps
 
 Congratulations! You've built a complete SaaS with:
+
 - ✅ User authentication
 - ✅ Subscription management
 - ✅ Payment processing

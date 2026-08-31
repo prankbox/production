@@ -7,6 +7,7 @@ Today you'll build a complete full-stack application with a React frontend and P
 ## What You'll Build
 
 A **Business Idea Generator** - an AI-powered SaaS application that:
+
 - Has a modern React frontend built with Next.js (using Pages Router for stability)
 - Uses TypeScript for type safety
 - Connects to a FastAPI backend
@@ -35,6 +36,7 @@ npx create-next-app saas --ts --eslint --tailwind --no-src-dir --no-app --no-imp
 ```
 
 This creates a new Next.js project with:
+
 - **Pages Router** (the stable, battle-tested routing system)
 - **TypeScript** for type safety
 - **ESLint** for catching errors and enforcing code quality
@@ -51,7 +53,7 @@ This creates a new Next.js project with:
 
 Next.js created these key files and folders:
 
-```
+```text
 saas/
 ├── pages/              # Pages Router directory (where your pages live)
 │   ├── _app.tsx       # Application wrapper (initializes pages)
@@ -69,6 +71,7 @@ saas/
 ```
 
 **Key files explained:**
+
 - **`pages/_app.tsx`**: The application wrapper that initializes all pages. Used for global providers and styles
 - **`pages/_document.tsx`**: Custom document for modifying the HTML structure
 - **`pages/index.tsx`**: Your homepage component. This is what users see at "/"
@@ -86,6 +89,7 @@ Since we're using a Python FastAPI backend (not Next.js API routes), let's remov
 #### What is Tailwind CSS?
 
 **Tailwind CSS** is a utility-first CSS framework. Instead of writing custom CSS, you apply pre-built utility classes directly in your HTML/JSX. For example:
+
 - `bg-blue-500` sets a blue background
 - `text-white` makes text white
 - `p-4` adds padding on all sides
@@ -98,13 +102,14 @@ This approach makes styling faster and more consistent!
 #### Create the API Folder
 
 In Cursor's file explorer, create a new folder at the root level:
+
 - Right-click in the file explorer → New Folder → name it `api`
 
 #### Create Python Dependencies
 
 Create a new file `requirements.txt` in the root directory with:
 
-```
+```text
 fastapi
 uvicorn
 openai
@@ -134,6 +139,7 @@ def idea():
 #### Understanding Client Components
 
 In Next.js Pages Router, all page components run on both server and client by default. Since we're using a **Python/FastAPI backend** for our API (not Next.js's server), we'll mark our components with `"use client"` to ensure:
+
 - The component runs in the browser
 - The browser makes direct API calls to our Python backend
 - We're not trying to use Next.js as a middleman server
@@ -173,6 +179,7 @@ export default function Home() {
 ```
 
 **What's happening here:**
+
 - `"use client"` tells Next.js this component runs in the browser
 - The browser directly calls our Python FastAPI backend at `/api`
 - We use React hooks to manage the UI state and fetch the data
@@ -231,6 +238,7 @@ vercel link
 ```
 
 Follow the prompts:
+
 - Set up and link? → Yes
 - Which scope? → Your personal account
 - Link to existing project? → No
@@ -246,6 +254,7 @@ Now that the project is created, add your OpenAI API key:
 ```bash
 vercel env add OPENAI_API_KEY
 ```
+
 - Paste your API key when prompted
 - Select all environments except development (preview, production) and when prompted whether to mark it as sensitive, say 'yes'
 
@@ -336,6 +345,7 @@ export default function Home() {
 ```
 
 **Tailwind classes explained:**
+
 - `prose`: Tailwind Typography plugin class that styles markdown content beautifully
 - `w-full max-w-2xl`: Full width with a maximum width constraint
 - `p-6`: Padding on all sides
@@ -556,6 +566,7 @@ export default function Home() {
 ```
 
 **Professional Tailwind styling:**
+
 - `min-h-screen`: Full viewport height
 - `bg-gradient-to-br`: Beautiful gradient background with dark mode support
 - `container mx-auto`: Centered container with responsive padding
@@ -575,6 +586,7 @@ vercel --prod
 ## Congratulations! 🎉
 
 You've built a complete SaaS application with:
+
 - ✅ Modern React frontend with Next.js Pages Router
 - ✅ TypeScript for type safety
 - ✅ FastAPI Python backend
@@ -596,12 +608,14 @@ You've built a complete SaaS application with:
 ## Understanding Pages Router Concepts
 
 **Pages Router Structure:**
+
 - Each file in `pages/` becomes a route
 - `pages/index.tsx` → `/`
 - `pages/product.tsx` → `/product`
 - `pages/api/` → API routes (though we're using Python instead)
 
 **Client-Side Rendering (`"use client"`):**
+
 - Components marked with `"use client"` run primarily in the browser
 - Can use React hooks (useState, useEffect)
 - Perfect for dynamic, interactive UI
@@ -621,18 +635,22 @@ In this project, we used client-side components because we needed browser featur
 ## Troubleshooting
 
 ### "Module not found" errors
+
 - Make sure you've installed all npm packages
 - Try deleting `node_modules` and running `npm install` again
 
 ### API not responding
+
 - Check that your OpenAI API key is set correctly
 - Verify you have credits in your OpenAI account
 
 ### Streaming not working
+
 - Some browsers block SSE on localhost - try a different browser
 - Check the browser console for errors
 
 ### ESLint warnings
+
 - ESLint helps catch potential issues in your code
 - Yellow squiggly lines are warnings (code will still run)
 - Red squiggly lines are errors (should be fixed)
@@ -642,10 +660,12 @@ In this project, we used client-side components because we needed browser featur
   - "Unused variable" - Remove variables you're not using
 
 ### TypeScript errors
+
 - Ensure all TypeScript packages are installed
 - Restart your development server after installing types
 
 ### Deployment issues
+
 - Make sure all files are saved before deploying
 - Check that vercel.json is properly formatted
 - Ensure your API key is added to Vercel environment variables

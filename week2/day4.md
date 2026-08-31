@@ -52,6 +52,7 @@ CloudFront takes 5-10 minutes to disable, and it can't be deleted until it has. 
 ### Step 4: Empty and Delete S3 Buckets
 
 **Memory Bucket:**
+
 1. Navigate to **S3**
 2. Click on your memory bucket (e.g., `twin-memory-xyz`)
 3. Click **Empty**
@@ -62,6 +63,7 @@ CloudFront takes 5-10 minutes to disable, and it can't be deleted until it has. 
 8. Click **Delete bucket**
 
 **Frontend Bucket:**
+
 1. Click on your frontend bucket (e.g., `twin-frontend-xyz`)
 2. Repeat the empty and delete process
 
@@ -89,6 +91,7 @@ Back to the tab you left open in Step 1:
 ### What is Infrastructure as Code?
 
 Infrastructure as Code (IaC) treats your infrastructure configuration as source code. Instead of clicking through console interfaces, you define your infrastructure in text files that can be:
+
 - **Version controlled** - Track changes over time
 - **Reviewed** - Use pull requests for infrastructure changes
 - **Automated** - Deploy with CI/CD pipelines
@@ -97,6 +100,7 @@ Infrastructure as Code (IaC) treats your infrastructure configuration as source 
 ### Key Terraform Concepts
 
 **1. Resources**: The building blocks - each AWS service you want to create
+
 ```hcl
 resource "aws_s3_bucket" "example" {
   bucket = "my-bucket-name"
@@ -104,11 +108,13 @@ resource "aws_s3_bucket" "example" {
 ```
 
 **2. State**: Terraform's record of what it has created
+
 - Stored in `terraform.tfstate` file
 - Maps your configuration to real resources
 - Critical for updates and deletions
 
 **3. Providers**: Plugins that interact with cloud providers
+
 ```hcl
 provider "aws" {
   region = "us-east-1"
@@ -116,6 +122,7 @@ provider "aws" {
 ```
 
 **4. Variables**: Parameterize your configuration
+
 ```hcl
 variable "environment" {
   description = "Environment name"
@@ -124,6 +131,7 @@ variable "environment" {
 ```
 
 **5. Workspaces**: Separate state for different environments
+
 - Each workspace has its own state file
 - Perfect for dev/test/prod separation
 
@@ -132,15 +140,18 @@ variable "environment" {
 We'll install Terraform from HashiCorp's official distribution.
 
 **Mac (using Homebrew):**
+
 ```bash
 brew tap hashicorp/tap
 brew install hashicorp/tap/terraform
 ```
 
 **Mac/Linux (manual):**
+
 1. Visit: https://developer.hashicorp.com/terraform/install
 2. Download the appropriate package for your system
 3. Extract and move to PATH:
+
 ```bash
 # Example for Mac (adjust URL for your system)
 curl -O https://releases.hashicorp.com/terraform/1.15.9/terraform_1.15.9_darwin_amd64.zip
@@ -149,6 +160,7 @@ sudo mv terraform /usr/local/bin/
 ```
 
 **Windows:**
+
 1. Visit: https://developer.hashicorp.com/terraform/install
 2. Download the Windows package
 3. Extract the .exe file
@@ -158,6 +170,7 @@ sudo mv terraform /usr/local/bin/
    - Edit PATH and add the Terraform directory
 
 **Verify Installation:**
+
 ```bash
 terraform --version
 ```
@@ -216,7 +229,8 @@ In Cursor's file explorer (the left sidebar):
 3. Name it `terraform`
 
 Your project structure should now have:
-```
+
+```text
 twin/
 ├── backend/
 ├── frontend/
@@ -740,6 +754,7 @@ const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://local
 Note the backticks - this is a JavaScript template literal, not a normal quoted string.
 
 This change allows the frontend to:
+
 - Use `http://localhost:8000` during local development
 - Use the production API URL (set via environment variable) when deployed
 
@@ -821,6 +836,7 @@ echo "📡 API Gateway    : $API_URL"
 ```
 
 **For Mac/Linux users only** - make it executable:
+
 ```bash
 chmod +x scripts/deploy.sh
 ```
@@ -902,7 +918,8 @@ terraform init
 ```
 
 You should see:
-```
+
+```text
 Initializing the backend...
 Initializing provider plugins...
 - Installing hashicorp/aws v6.x.x...
@@ -918,16 +935,19 @@ cd ..
 ### Step 2: Deploy Using the Script
 
 **Mac/Linux from the project root:**
+
 ```bash
 ./scripts/deploy.sh dev
 ```
 
 **Windows (PowerShell) from the project root:**
+
 ```powershell
 .\scripts\deploy.ps1 -Environment dev
 ```
 
 The script will:
+
 1. Build the Lambda package
 2. Create a `dev` workspace in Terraform
 3. Deploy all infrastructure
@@ -949,11 +969,13 @@ Now let's deploy a completely separate test environment:
 ### Step 1: Deploy Test Environment
 
 **Mac/Linux:**
+
 ```bash
 ./scripts/deploy.sh test
 ```
 
 **Windows (PowerShell):**
+
 ```powershell
 .\scripts\deploy.ps1 -Environment test
 ```
@@ -961,6 +983,7 @@ Now let's deploy a completely separate test environment:
 ### Step 2: Verify Separate Resources
 
 Check the AWS Console - you'll see separate resources for test:
+
 - `twin-test-api` Lambda function
 - `twin-test-memory` S3 bucket
 - `twin-test-frontend` S3 bucket
@@ -1055,6 +1078,7 @@ echo "   terraform workspace delete $ENVIRONMENT"
 ```
 
 Make it executable:
+
 ```bash
 chmod +x scripts/destroy.sh
 ```
@@ -1142,6 +1166,7 @@ Write-Host "   terraform workspace delete $Environment" -ForegroundColor White
 To destroy a specific environment:
 
 **Mac/Linux:**
+
 ```bash
 # Destroy dev environment
 ./scripts/destroy.sh dev
@@ -1154,6 +1179,7 @@ To destroy a specific environment:
 ```
 
 **Windows (PowerShell):**
+
 ```powershell
 # Destroy dev environment
 .\scripts\destroy.ps1 -Environment dev
@@ -1168,6 +1194,7 @@ To destroy a specific environment:
 ### What Gets Destroyed
 
 The destroy scripts will:
+
 1. Empty S3 buckets (frontend and memory)
 2. Delete all AWS resources created by Terraform:
    - Lambda functions
@@ -1182,12 +1209,13 @@ The destroy scripts will:
 
 - **CloudFront**: Distributions can take 5-15 minutes to fully delete
 - **Workspaces**: The scripts destroy resources but keep the workspace. To fully remove a workspace:
+
   ```bash
   terraform workspace select default
   terraform workspace delete dev  # or test, prod
   ```
-- **Cost Savings**: Always destroy unused environments to avoid charges
 
+- **Cost Savings**: Always destroy unused environments to avoid charges
 
 ## Part 8: OPTIONAL - Add a Custom Domain
 
@@ -1197,7 +1225,8 @@ If you want a professional domain for your production twin, follow these steps.
 
 **Important**: Domain registration requires billing permissions, so you'll need to sign in as the **root user** for this step.
 
-**Option A: Register through AWS Route 53**
+#### Option A: Register through AWS Route 53
+
 1. Sign out of your IAM user account
 2. Sign in to AWS Console as the **root user**
 3. Go to Route 53 in AWS Console
@@ -1207,7 +1236,8 @@ If you want a professional domain for your production twin, follow these steps.
 7. Wait for registration (5-30 minutes)
 8. Once registered, sign back in as your IAM user (`aiengineer`) to continue
 
-**Option B: Use existing domain**
+#### Option B: Use existing domain
+
 - If you already own a domain elsewhere:
   - Transfer DNS to Route 53, or
   - Create a hosted zone and update nameservers at your registrar
@@ -1215,6 +1245,7 @@ If you want a professional domain for your production twin, follow these steps.
 ### Step 2: Create Hosted Zone (if not auto-created)
 
 If Route 53 didn't auto-create a hosted zone:
+
 1. Go to Route 53 → **Hosted zones**
 2. Click **Create hosted zone**
 3. Enter your domain name
@@ -1239,16 +1270,19 @@ root_domain              = "yourdomain.com"  # Replace with your actual domain
 ### Step 4: Deploy Production with Domain
 
 **Mac/Linux:**
+
 ```bash
 ./scripts/deploy.sh prod
 ```
 
 **Windows (PowerShell):**
+
 ```powershell
 .\scripts\deploy.ps1 -Environment prod
 ```
 
 The deployment will:
+
 1. Create SSL certificate in ACM
 2. Validate domain ownership via DNS
 3. Configure CloudFront with your domain
@@ -1259,6 +1293,7 @@ The deployment will:
 ### Step 5: Test Your Custom Domain
 
 Once deployed:
+
 1. Visit `https://yourdomain.com`
 2. Visit `https://www.yourdomain.com`
 3. Both should show your Digital Twin!
@@ -1268,7 +1303,8 @@ Once deployed:
 ### How Workspaces Isolate Environments
 
 Each workspace maintains its own state file:
-```
+
+```text
 terraform.tfstate.d/
 ├── dev/
 │   └── terraform.tfstate
@@ -1281,16 +1317,19 @@ terraform.tfstate.d/
 ### Managing Workspaces
 
 **List workspaces:**
+
 ```bash
 terraform workspace list
 ```
 
 **Switch workspace:**
+
 ```bash
 terraform workspace select dev
 ```
 
 **Show current workspace:**
+
 ```bash
 terraform workspace show
 ```
@@ -1298,6 +1337,7 @@ terraform workspace show
 ### Resource Naming
 
 Resources are named with environment prefix:
+
 - Dev: `twin-dev-api`, `twin-dev-memory`
 - Test: `twin-test-api`, `twin-test-memory`
 - Prod: `twin-prod-api`, `twin-prod-memory`
@@ -1309,16 +1349,19 @@ Resources are named with environment prefix:
 Our configuration uses different settings per environment:
 
 **Development:**
+
 - Nova Micro model (cheapest)
 - Lower API throttling
 - No custom domain
 
 **Test:**
+
 - Nova Micro model
 - Standard throttling
 - No custom domain
 
 **Production:**
+
 - Nova Lite model (better quality)
 - Higher throttling limits
 - Custom domain with SSL
@@ -1346,15 +1389,18 @@ terraform import aws_lambda_function.api twin-dev-api
 
 ### Deployment Script Failures
 
-**"Lambda package not found"**
+#### "Lambda package not found"
+
 - Ensure Docker is running
 - Run `cd backend && uv run deploy.py` manually
 
-**"S3 bucket already exists"**
+#### "S3 bucket already exists"
+
 - Bucket names must be globally unique
 - Change project_name in terraform.tfvars
 
-**"Certificate validation timeout"**
+#### "Certificate validation timeout"
+
 - Check Route 53 has the validation records
 - Wait longer (can take up to 30 minutes)
 
@@ -1375,12 +1421,14 @@ aws cloudfront create-invalidation --distribution-id YOUR_ID --paths "/*"
 ### 1. Version Control
 
 Always commit your Terraform files:
+
 ```bash
 git add terraform/*.tf terraform/*.tfvars
 git commit -m "Add Terraform infrastructure"
 ```
 
 Never commit:
+
 - `terraform.tfstate` files
 - `.terraform/` directory
 - AWS credentials
@@ -1388,6 +1436,7 @@ Never commit:
 ### 2. Plan Before Apply
 
 Review changes before applying:
+
 ```bash
 terraform plan
 ```
@@ -1395,6 +1444,7 @@ terraform plan
 ### 3. Use Variables
 
 Don't hardcode values - use variables:
+
 ```hcl
 # Good
 bucket = "${local.name_prefix}-memory"
@@ -1406,6 +1456,7 @@ bucket = "twin-dev-memory"
 ### 4. Tag Everything
 
 Our configuration tags all resources:
+
 ```hcl
 tags = {
   Project     = var.project_name
@@ -1427,7 +1478,7 @@ tags = {
 
 Your Terraform manages:
 
-```
+```text
 Terraform Configuration
     ├── S3 Buckets (Frontend + Memory)
     ├── Lambda Function with IAM Role
@@ -1444,6 +1495,7 @@ Managed via Workspaces:
 ## Next Steps
 
 Tomorrow (Day 5), we'll add CI/CD with GitHub Actions:
+
 - Automated testing on pull requests
 - Deployment pipelines for each environment
 - Infrastructure change reviews
