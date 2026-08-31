@@ -7,6 +7,7 @@ Today, you'll transform your SaaS into a healthcare consultation assistant that 
 ## What You'll Build
 
 A healthcare application that:
+
 - Takes doctor's consultation notes as input
 - Generates professional summaries for medical records
 - Creates actionable next steps for the doctor
@@ -25,8 +26,9 @@ We need a date picker for the consultation form:
 
 ```bash
 npm install react-datepicker
-npm install --save-dev @types/react-datepicker
 ```
+
+> Older versions of these instructions also installed `@types/react-datepicker`. Don't - that package is now a deprecated stub, because `react-datepicker` ships its own TypeScript types.
 
 ## Step 2: Update the Backend API
 
@@ -104,6 +106,7 @@ def consultation_summary(
 ```
 
 Note the key changes:
+
 - Changed from `@app.get("/api")` to `@app.post("/api")` to accept form data
 - Added a `Visit` model to validate incoming data
 - Structured prompts for healthcare-specific output
@@ -442,7 +445,7 @@ export default function Home() {
 
 Make sure `requirements.txt` includes Pydantic for data validation:
 
-```
+```text
 fastapi
 uvicorn
 openai
@@ -466,10 +469,12 @@ vercel --prod
 4. Try entering sample consultation notes:
 
 **Example Input:**
+
 - **Patient Name:** Jane Smith
 - **Date:** Today's date
-- **Notes:** 
-  ```
+- **Notes:**
+
+  ```text
   Patient presents with persistent cough for 2 weeks. No fever. 
   Chest clear on examination. Blood pressure 120/80. 
   Likely viral bronchitis. Prescribed rest and fluids. 
@@ -477,6 +482,7 @@ vercel --prod
   ```
 
 You'll receive:
+
 1. A professional summary for medical records
 2. Clear next steps for the doctor
 3. A patient-friendly email draft
@@ -484,6 +490,7 @@ You'll receive:
 ## What's Happening?
 
 Your healthcare app now:
+
 - **Accepts structured input**: Form data with patient name, date, and notes
 - **Validates data**: Using Pydantic models on the backend
 - **Generates structured output**: Three distinct sections for different purposes
@@ -501,6 +508,7 @@ Your healthcare app now:
 ## Security Considerations
 
 **Important:** This is a demonstration application. For production healthcare use:
+
 - Implement proper HIPAA compliance measures
 - Add data encryption at rest and in transit
 - Implement audit logging for all access
@@ -511,25 +519,30 @@ Your healthcare app now:
 ## Troubleshooting
 
 ### "Method not allowed" error
+
 - Make sure the API endpoint uses `@app.post("/api")` not `@app.get("/api")`
 - Verify the fetch request uses `method: 'POST'`
 
 ### Date picker not styled correctly
+
 - Ensure `react-datepicker/dist/react-datepicker.css` is imported in `pages/_app.tsx`
 - Check that the date picker has the correct className for Tailwind styling
 
 ### Form data not sending
+
 - Check browser console for errors
 - Verify all required fields are filled
 - Ensure the JWT token is being retrieved successfully
 
 ### Output not formatting correctly
+
 - Make sure the markdown-content styles are applied (from Day 2)
 - Verify ReactMarkdown plugins are imported
 
 ## Customization Ideas
 
 ### Add More Fields
+
 ```typescript
 // Add specialty selection
 const [specialty, setSpecialty] = useState('General Practice');
@@ -539,7 +552,9 @@ const [urgency, setUrgency] = useState<'routine' | 'urgent' | 'emergency'>('rout
 ```
 
 ### Enhanced Templates
+
 Create different prompt templates for different specialties:
+
 ```python
 def get_system_prompt(specialty: str) -> str:
     prompts = {
@@ -551,7 +566,9 @@ def get_system_prompt(specialty: str) -> str:
 ```
 
 ### Export Options
+
 Add buttons to export the generated content:
+
 ```typescript
 const handleExportPDF = () => {
     // Generate PDF from markdown
@@ -565,6 +582,7 @@ const handleCopyEmail = () => {
 ## Next Steps
 
 Congratulations! You've built a professional healthcare consultation assistant with:
+
 - ✅ Structured medical data input
 - ✅ AI-powered content generation
 - ✅ Professional and patient-friendly outputs
@@ -581,3 +599,9 @@ Congratulations! You've built a professional healthcare consultation assistant w
 6. **Collaboration**: Allow multiple doctors to share templates
 
 Your healthcare assistant is ready to help medical professionals save time and improve patient communication!
+
+---
+
+## Next up
+
+**[Day 5](day5.md)** - containerize the app with Docker and deploy it to AWS Lambda.

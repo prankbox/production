@@ -25,6 +25,14 @@ I've also recorded an extra video to highlight the approach covered here - here'
 - **AWS Lambda Web Adapter** to run a normal FastAPI app on Lambda unchanged
 - **Cost monitoring** to keep your AWS bill under control
 
+## Prerequisites
+
+- Completed Day 4 - your healthcare consultation assistant works on Vercel
+- A payment card, to create an AWS account (we'll set up budget alerts before deploying anything)
+- Roughly 5GB of free disk space for Docker Desktop and your container image
+
+Everything else - Docker, the AWS CLI, your AWS account - you'll install and create as you go.
+
 ## Important: Budget Protection First!
 
 AWS charges for resources you use. Let's set up cost alerts BEFORE deploying anything.
@@ -36,21 +44,27 @@ We'll still set up budget alerts at $1, $5, and $10 to track spending. This is a
 ## Understanding AWS Services We'll Use
 
 ### AWS Lambda
+
 **Lambda** is AWS's serverless compute service. It runs your code (or a container image, in our case) only when it's invoked, and you pay only for the compute time you use, billed in millisecond increments. Cold starts (the very first invocation) take a few seconds; warm invocations are fast. Lambda supports container images up to 10GB.
 
 ### Lambda Function URLs
-**Function URLs** are dedicated HTTPS endpoints that route directly to a Lambda function — no API Gateway needed, no extra cost. The URL looks like `https://<id>.lambda-url.<region>.on.aws/`. As of November 2025, Function URLs support response streaming, which is what we'll use to stream Server-Sent Events from FastAPI.
+
+**Function URLs** are dedicated HTTPS endpoints that route directly to a Lambda function — no API Gateway needed, no extra cost. The URL looks like `https://<id>.lambda-url.<region>.on.aws/`. Function URLs support response streaming, which is what we'll use to stream Server-Sent Events from FastAPI.
 
 ### AWS Lambda Web Adapter
+
 The **Lambda Web Adapter** is an open-source Lambda extension from AWS Labs. By dropping a single binary into your container at `/opt/extensions/lambda-adapter`, you can run any standard web framework (FastAPI, Flask, Express, etc.) on Lambda without modifying your application code. The adapter translates Lambda invocations into HTTP requests to your local web server (FastAPI listening on port 8000) and translates responses back. With response streaming enabled, it streams chunks as your FastAPI app yields them.
 
 ### Amazon ECR (Elastic Container Registry)
+
 **ECR** is like GitHub but for Docker images. It's where we'll store our containerized application before deploying it to Lambda.
 
 ### AWS IAM (Identity and Access Management)
+
 **IAM** controls who can access what in your AWS account. We'll create a special user account with limited permissions for safety — never use your root account for daily work.
 
 ### CloudWatch
+
 **CloudWatch** is AWS's monitoring service. It collects logs from your Lambda function and helps you debug issues — like having the browser console for your server.
 
 ## Part 1: Create Your AWS Account
@@ -91,12 +105,14 @@ You now have an AWS root account. This is like having admin access — powerful 
 6. Set up three budgets:
 
 **Budget 1 - Early Warning ($1)**:
+
 - Budget name: `early-warning`
 - Enter budgeted amount: `1` USD
 - Email recipients: Enter your email address
 - Click **Create budget**
 
 **Budget 2 - Caution ($5)**:
+
 - Repeat: Create budget → Use a template → Monthly cost budget
 - Budget name: `caution-budget`
 - Enter budgeted amount: `5` USD
@@ -104,6 +120,7 @@ You now have an AWS root account. This is like having admin access — powerful 
 - Click **Create budget**
 
 **Budget 3 - Stop Alert ($10)**:
+
 - Repeat: Create budget → Use a template → Monthly cost budget
 - Budget name: `stop-budget`
 - Enter budgeted amount: `10` USD
@@ -180,9 +197,10 @@ Open Terminal (Mac) or PowerShell (Windows):
 docker --version
 ```
 
-You should see: `Docker version 26.x.x` or similar
+You should see something like `Docker version 29.x.x` - any recent version is fine
 
 Test Docker:
+
 ```bash
 docker run hello-world
 ```
@@ -198,7 +216,8 @@ We need to modify our Day 4 application for AWS deployment. The key change: we'l
 ### Step 1: Update Project Structure
 
 Your project should look like this:
-```
+
+```text
 saas/
 ├── pages/                  # Next.js Pages Router
 ├── styles/                 # CSS styles
@@ -252,7 +271,9 @@ This works because both frontend and backend will be served from the same domain
 
 ### Step 4: Update Backend Server
 
-Create a new file `api/server.py` (the same FastAPI server that worked for App Runner — no changes are required for it to run on Lambda; the Lambda Web Adapter handles the translation transparently):
+Create a new file `api/server.py` (the same FastAPI server that worked for App Runner — no changes are required for it to run on Lambda; the Lambda Web Adapter handles the translation transparently).
+
+Note that this is a **new file alongside** your existing `api/index.py`. From here on, `server.py` is the one that matters: it's the only Python file the Dockerfile copies into the container. You can leave `api/index.py` where it is (it's what Vercel used, and it's handy if you want to go back and compare), but nothing in the AWS deployment reads it any more.
 
 ```python
 import os
@@ -365,6 +386,7 @@ AWS_ACCOUNT_ID=123456789012
 ```
 
 **To find your AWS Account ID**:
+
 1. In AWS Console, click your username (top right)
 2. Copy the 12-digit Account ID
 
@@ -411,7 +433,7 @@ WORKDIR /app
 # --- Lambda Web Adapter additions (the only changes vs. the video's Dockerfile) ---
 # Drops a Lambda extension binary into /opt/extensions. The binary is inert
 # unless invoked by the Lambda runtime, so local `docker run` is unaffected.
-COPY --from=public.ecr.aws/awsguru/aws-lambda-adapter:1.0.0 /lambda-adapter /opt/extensions/lambda-adapter
+COPY --from=public.ecr.aws/awsguru/aws-lambda-adapter:1.1.0 /lambda-adapter /opt/extensions/lambda-adapter
 
 # Tell the adapter which port FastAPI listens on
 ENV PORT=8000
@@ -445,7 +467,7 @@ CMD ["uvicorn", "server:app", "--host", "0.0.0.0", "--port", "8000"]
 
 Create `.dockerignore` to exclude unnecessary files:
 
-```
+```text
 node_modules
 .next
 .env
@@ -467,11 +489,13 @@ Let's test our containerized app before deploying to AWS. **The Lambda Web Adapt
 ### Step 1: Load Environment Variables
 
 **Mac/Linux** (Terminal):
+
 ```bash
 export $(cat .env | grep -v '^#' | xargs)
 ```
 
 **Windows** (PowerShell):
+
 ```powershell
 Get-Content .env | ForEach-Object {
     if ($_ -match '^(.+?)=(.+)$') {
@@ -485,6 +509,7 @@ Get-Content .env | ForEach-Object {
 Build your container:
 
 **Mac/Linux**:
+
 ```bash
 docker build \
   --build-arg NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="$NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY" \
@@ -492,6 +517,7 @@ docker build \
 ```
 
 **Windows PowerShell**:
+
 ```powershell
 docker build `
   --build-arg NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="$env:NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY" `
@@ -505,6 +531,7 @@ Windows people: if you get an error `The image manifest, config or layer media t
 ### Step 3: Run Locally
 
 **Mac/Linux**:
+
 ```bash
 docker run -p 8000:8000 \
   -e CLERK_SECRET_KEY="$CLERK_SECRET_KEY" \
@@ -514,6 +541,7 @@ docker run -p 8000:8000 \
 ```
 
 **Windows PowerShell**:
+
 ```powershell
 docker run -p 8000:8000 `
   -e CLERK_SECRET_KEY="$env:CLERK_SECRET_KEY" `
@@ -573,15 +601,18 @@ We need AWS CLI to push our image.
 #### Configure AWS CLI
 
 Install AWS CLI if you haven't:
+
 - **Mac**: `brew install awscli` or download from [aws.amazon.com/cli](https://aws.amazon.com/cli/)
 - **Windows**: Download installer from [aws.amazon.com/cli](https://aws.amazon.com/cli/)
 
 Configure it:
+
 ```bash
 aws configure
 ```
 
 Enter:
+
 - AWS Access Key ID: (paste your key)
 - AWS Secret Access Key: (paste your secret)
 - Default region: Choose based on your location:
@@ -603,6 +634,7 @@ Enter:
 **Understanding the authentication**: The first command gets a temporary password from AWS and pipes it to Docker. You won't be prompted for a password — it's all automatic.
 
 **Mac/Linux**:
+
 ```bash
 # 1. Authenticate Docker to ECR (using your .env values!)
 aws ecr get-login-password --region $DEFAULT_AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$DEFAULT_AWS_REGION.amazonaws.com
@@ -622,6 +654,7 @@ docker push $AWS_ACCOUNT_ID.dkr.ecr.$DEFAULT_AWS_REGION.amazonaws.com/consultati
 ```
 
 **Windows PowerShell**:
+
 ```powershell
 # 1. Authenticate Docker to ECR
 aws ecr get-login-password --region $env:DEFAULT_AWS_REGION | docker login --username AWS --password-stdin "$env:AWS_ACCOUNT_ID.dkr.ecr.$env:DEFAULT_AWS_REGION.amazonaws.com"
@@ -717,7 +750,7 @@ In the video, I use an App Runner health check at this step. Lambda doesn't have
 
 You'll now see a **Function URL** at the top of the function's overview, in the format:
 
-```
+```text
 https://<random-id>.lambda-url.<region>.on.aws/
 ```
 
@@ -758,6 +791,7 @@ You'll see startup logs from uvicorn, plus a line for each request.
 ### View Metrics
 
 The **Monitor** tab also shows charts for:
+
 - **Invocations** — number of requests
 - **Duration** — how long each request took
 - **Error count and success rate**
@@ -766,25 +800,31 @@ The **Monitor** tab also shows charts for:
 ### Common Issues and Solutions
 
 **Cold start of 10-30 seconds on first request**:
+
 - This is expected. Your container has to boot before serving the first request.
 - Subsequent requests within ~15 minutes will be warm and fast.
 - If this is unacceptable, you can configure **Provisioned Concurrency** (incurs cost) — not recommended for the course.
 
 **"Exec format error" in CloudWatch logs**:
+
 - You forgot the `--platform linux/amd64` flag when building. Rebuild with that flag and push again.
 
 **Streaming responses don't stream — they all arrive at once**:
+
 - The Function URL's **Invoke mode** is set to **BUFFERED**. Edit the Function URL and change it to **RESPONSE_STREAM**, then save.
 
 **"Authentication failed" / "Unauthorized"**:
+
 - Double-check the three environment variables (`CLERK_SECRET_KEY`, `CLERK_JWKS_URL`, `OPENAI_API_KEY`) on the function's Configuration tab.
 - Verify the JWKS URL exactly matches your Clerk application.
 
 **Function URL returns 502/503**:
+
 - Open CloudWatch Logs and look for a Python traceback. The most common cause is a missing/incorrect environment variable.
 - A 503 specifically can also mean the container is still cold-starting — wait a few seconds and retry.
 
 **Page loads but `/api/consultation` fails**:
+
 - Open the browser console; you'll usually see CORS or 401 errors.
 - Check that you updated `pages/product.tsx` to call `/api/consultation` (Part 3, Step 3).
 
@@ -797,6 +837,7 @@ The **Monitor** tab also shows charts for:
 This is identical to Part 6 Step 3.
 
 **Mac/Linux**:
+
 ```bash
 # 1. Rebuild with platform flag
 docker build \
@@ -812,6 +853,7 @@ docker push $AWS_ACCOUNT_ID.dkr.ecr.$DEFAULT_AWS_REGION.amazonaws.com/consultati
 ```
 
 **Windows PowerShell**:
+
 ```powershell
 docker build `
   --platform linux/amd64 `
@@ -828,6 +870,7 @@ docker push "$env:AWS_ACCOUNT_ID.dkr.ecr.$env:DEFAULT_AWS_REGION.amazonaws.com/c
 Pushing to ECR with the same `latest` tag does **not** automatically update the Lambda function — you have to explicitly point Lambda at the new image. There are two ways:
 
 **Option A — AWS Console (matches the style of the video):**
+
 1. Open your Lambda function in the AWS Console
 2. On the **Image** tab (or "Image" section of the overview), click **Deploy new image**
 3. Click **Browse images**, select `consultation-app`, select tag `latest`, click **Save**
@@ -836,6 +879,7 @@ Pushing to ECR with the same `latest` tag does **not** automatically update the 
 **Option B — AWS CLI (one command):**
 
 **Mac/Linux**:
+
 ```bash
 aws lambda update-function-code \
   --function-name consultation-app \
@@ -844,6 +888,7 @@ aws lambda update-function-code \
 ```
 
 **Windows PowerShell**:
+
 ```powershell
 aws lambda update-function-code `
   --function-name consultation-app `
@@ -858,6 +903,7 @@ After the update, the next request to your Function URL will run the new image. 
 ### What This Costs
 
 With Lambda's perpetual free tier, expect:
+
 - **Lambda compute**: $0/month for course-sized usage. The free tier includes 1,000,000 requests/month and 400,000 GB-seconds/month, every month, forever.
 - **Lambda Function URL**: free (no per-request charge beyond Lambda's own).
 - **ECR storage**: ~$0.10/GB/month for image storage. Your image is around 500MB-1GB, so $0.05-$0.10/month.
@@ -875,6 +921,7 @@ This is dramatically cheaper than App Runner ($5-6/month always-on) or ECS Expre
 ### Emergency Cost Control
 
 If you somehow hit budget alerts:
+
 1. Go to Lambda → your function → **Throttle** in the top-right Actions menu (sets reserved concurrency to 0, immediately stopping all invocations)
 2. Review CloudWatch logs for any unexpected traffic
 3. Check ECR for excessive image versions
@@ -882,6 +929,7 @@ If you somehow hit budget alerts:
 ## What You've Accomplished
 
 You've successfully:
+
 - Created a production AWS account with security best practices
 - Containerized a full-stack application with Docker
 - Deployed to AWS Lambda with HTTPS, response streaming, and monitoring
@@ -891,12 +939,14 @@ You've successfully:
 ## Architecture Comparison: Vercel vs AWS Lambda Containers
 
 **Vercel Architecture**:
+
 - Next.js runs on Vercel's servers
 - API routes handled by Vercel Functions
 - Automatic deployments from Git
 - Zero-config setup
 
 **AWS Lambda Architecture (this lesson)**:
+
 - Everything runs in a single Docker container, on demand
 - FastAPI serves both API and static files
 - Container scales to zero when idle, scales out automatically under load
@@ -920,11 +970,13 @@ For a single-container learning project where you want the simplest, cheapest, f
 ## Next Steps
 
 ### Immediate Improvements
+
 1. **Custom domain**: Put a CloudFront distribution in front of the Function URL and attach your domain (free via ACM).
 2. **Auto-deployment**: Add a GitHub Actions workflow that runs `docker build` + `docker push` + `aws lambda update-function-code` on every push.
 3. **Monitoring**: Add CloudWatch alarms for error rate or duration.
 
 ### Advanced Enhancements
+
 1. **Database**: Add Amazon DynamoDB or RDS for data persistence.
 2. **File storage**: Use S3 for user uploads.
 3. **Caching**: Use Lambda's in-memory caching, or DynamoDB.
@@ -935,39 +987,48 @@ For a single-container learning project where you want the simplest, cheapest, f
 ### Docker Issues
 
 **"Cannot connect to Docker daemon"**:
+
 - Make sure Docker Desktop is running.
 - Mac: Check for whale icon in menu bar. Windows: Check system tray.
 
 **"Exec format error" when running container on Lambda**:
+
 - You forgot the `--platform linux/amd64` flag. Rebuild and push.
 
 ### AWS Issues
 
 **"Unauthorized" in ECR push**:
+
 - Re-authenticate:
+
   ```bash
   aws ecr get-login-password --region YOUR-REGION | docker login --username AWS --password-stdin <your-ecr-url>
   ```
 
 **"Access Denied" in Lambda Console**:
+
 - Check the IAM user has `AWSLambda_FullAccess` and `IAMFullAccess` (Part 1, Step 5).
 - Verify AWS CLI is configured with the same user's credentials.
 
 ### Application Issues
 
 **Lambda returns "Internal Server Error" / 502**:
+
 - Check CloudWatch Logs for a Python traceback.
 - The most common cause is an environment variable missing or wrong.
 
 **Streaming output not streaming (text appears all at once)**:
+
 - Function URL invoke mode is **BUFFERED**, not **RESPONSE_STREAM**. Fix in Configuration → Function URL.
 
 **Clerk authentication not working**:
+
 - Verify all three Clerk environment variables on the Lambda function.
 - Check the JWKS URL exactly matches your Clerk app.
 - Confirm the frontend was built with the publishable key (it's set as a build arg in the Dockerfile).
 
 **API calls failing**:
+
 - Check the browser console.
 - Verify `/api/consultation` (not `/api`) is being called.
 - Check CloudWatch logs for Python errors.
@@ -979,7 +1040,7 @@ Congratulations on deploying your healthcare SaaS to AWS Lambda. You've learned:
 1. **Docker basics** — containerizing applications
 2. **AWS fundamentals** — IAM, ECR, Lambda, Function URLs, CloudWatch
 3. **Production deployment** — security, monitoring, cost control
-4. **A future-proof container deployment pattern** that does not depend on App Runner (going away), AWS Copilot (going away June 12, 2026), or ECS Express Mode (more expensive than necessary for a single service)
+4. **A future-proof container deployment pattern** that does not depend on App Runner (closed to new customers), AWS Copilot (retired in June 2026), or ECS Express Mode (more expensive than necessary for a single service)
 
 This is how lean engineering teams ship containerized applications on AWS in 2026 — and the pattern scales from $0/month hobby project to production-grade workloads serving millions of requests per day.
 
@@ -994,3 +1055,9 @@ This is how lean engineering teams ship containerized applications on AWS in 202
 - [App Runner availability change announcement](https://docs.aws.amazon.com/apprunner/latest/dg/apprunner-availability-change.html)
 
 Remember to monitor your AWS costs. Happy deploying!
+
+---
+
+## Next up
+
+**[Week 2, Day 1](../week2/day1.md)** - build your AI Digital Twin.

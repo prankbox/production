@@ -19,12 +19,14 @@ Today, we'll start by building a local version that showcases a fundamental chal
 In Week 1, we used Next.js with the **Pages Router**. This week, we're using the **App Router**. Here's what you need to know:
 
 ### Pages Router (Week 1)
+
 - Files in `pages/` directory become routes
 - `pages/index.tsx` → `/`
 - `pages/product.tsx` → `/product`
 - Uses `getServerSideProps` for data fetching
 
 ### App Router (Week 2)
+
 - Files in `app/` directory define routes
 - `app/page.tsx` → `/`
 - `app/about/page.tsx` → `/about`
@@ -32,6 +34,13 @@ In Week 1, we used Next.js with the **Pages Router**. This week, we're using the
 - More modern, better performance, recommended for new projects
 
 For our purposes, the main difference is the project structure - the actual React code you write will be very similar!
+
+## Prerequisites
+
+- Your OpenAI API key from Week 1
+- Node.js and Cursor, from Week 1 Day 1
+
+This is a brand new project called `twin`, so nothing from your Week 1 `saas` project is needed.
 
 ## Part 1: Project Setup
 
@@ -51,7 +60,8 @@ In Cursor's file explorer (the left sidebar):
 3. Right-click again and select **New Folder** and name it `memory`
 
 Your project structure should now look like:
-```
+
+```text
 twin/
 ├── backend/
 └── memory/
@@ -69,6 +79,8 @@ npx create-next-app@latest frontend --typescript --tailwind --app --no-src-dir
 
 When prompted, accept all the default options by pressing Enter.
 
+> One of those prompts asks about the import alias. Keep the default of `@/*` - our code imports the Twin component as `@/components/twin`, which only works with that alias in place.
+
 After it completes, create a components directory using Cursor's file explorer:
 
 1. In the left sidebar, expand the `frontend` folder
@@ -76,7 +88,8 @@ After it completes, create a components directory using Cursor's file explorer:
 3. Select **New Folder** and name it `components`
 
 ✅ **Checkpoint**: Your project structure should look like:
-```
+
+```text
 twin/
 ├── backend/
 ├── frontend/
@@ -98,21 +111,24 @@ Visit the uv installation guide: [https://docs.astral.sh/uv/getting-started/inst
 **Quick installation:**
 
 **Mac/Linux:**
+
 ```bash
 curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
 **Windows (PowerShell):**
+
 ```powershell
 powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
 ```
 
 After installation, close and reopen your terminal, then verify:
+
 ```bash
 uv --version
 ```
 
-You should see a version number like `uv 0.8.18` or similar.
+You should see a version number like `uv 0.12.5` - any recent version is fine.
 
 ## Part 3: Create the Backend API
 
@@ -120,7 +136,7 @@ You should see a version number like `uv 0.8.18` or similar.
 
 Create `backend/requirements.txt`:
 
-```
+```text
 fastapi
 uvicorn
 openai
@@ -151,7 +167,7 @@ Also, it's a good practice in case you ever decide to push this repo to github:
 
 Create `backend/me.txt` with a description of who your digital twin represents. For example:
 
-```
+```text
 You are a chatbot acting as a "Digital Twin", representing [Your Name] on [Your Name]'s website,
 and engaging with visitors to the website.
 
@@ -241,7 +257,7 @@ async def chat(request: ChatRequest):
 
         # Call OpenAI API
         response = client.chat.completions.create(
-            model="gpt-4o-mini", 
+            model="gpt-5-nano", 
             messages=messages
         )
 
@@ -264,6 +280,8 @@ if __name__ == "__main__":
 ### Step 1: Create the Twin Component
 
 Create `frontend/components/twin.tsx`:
+
+> This component imports icons from `lucide-react`. Your editor will underline that import in red until we install the package in Step 2 - that's expected, and we'll fix it in a moment.
 
 ```typescript
 'use client';
@@ -511,9 +529,9 @@ export default function Home() {
 
 ### Step 4: Fix Tailwind v4 Configuration
 
-Next.js 15.5 comes with Tailwind CSS v4, which has a different configuration approach. We need to update two files:
+Current versions of Next.js ship with Tailwind CSS v4, which configures itself differently from v3. We need to check two files - `postcss.config.mjs` in this step, and `globals.css` in Step 5.
 
-First, update `frontend/postcss.config.mjs`:
+First, confirm `frontend/postcss.config.mjs` looks like this (recent versions of `create-next-app` already generate it this way, in which case there's nothing to change):
 
 ```javascript
 export default {
@@ -570,7 +588,8 @@ uv run uvicorn server:app --reload
 ```
 
 You should see something like this at the end:
-```
+
+```text
 INFO:     Uvicorn running on http://127.0.0.1:8000
 INFO:     Application startup complete.
 ```
@@ -585,8 +604,9 @@ npm run dev
 ```
 
 You should see:
-```
-▲ Next.js 15.x.x
+
+```text
+▲ Next.js 16.x.x
 Local: http://localhost:3000
 ```
 
@@ -714,7 +734,7 @@ async def chat(request: ChatRequest):
         
         # Call OpenAI API
         response = client.chat.completions.create(
-            model="gpt-4o-mini",
+            model="gpt-5-nano",
             messages=messages
         )
         
@@ -786,7 +806,7 @@ You'll see files like `abc123-def456-....json` containing the full conversation 
 
 ### The Architecture
 
-```
+```text
 User Browser → Next.js Frontend → FastAPI Backend → OpenAI API
                      ↑                    ↓
                      └──── Memory Files ←─┘
@@ -813,6 +833,7 @@ User Browser → Next.js Frontend → FastAPI Backend → OpenAI API
 ## Congratulations! 🎉
 
 You've successfully built your first AI Digital Twin with:
+
 - ✅ A responsive chat interface
 - ✅ Integration with OpenAI's API
 - ✅ Persistent conversation memory
@@ -829,19 +850,23 @@ You've successfully built your first AI Digital Twin with:
 ## Troubleshooting
 
 ### "Connection refused" error
+
 - Make sure both backend and frontend servers are running
 - Check that the backend is on port 8000 and frontend on port 3000
 
 ### OpenAI API errors
+
 - Verify your API key is correct in `backend/.env`
 - Check you have credits in your OpenAI account
 
 ### Memory not persisting
+
 - Ensure the `memory/` directory exists
 - Check file permissions if on Linux/Mac
 - Look for `.json` files in the memory directory
 
 ### Frontend not updating
+
 - Clear your browser cache
 - Make sure you saved all files
 - Check the browser console for errors
@@ -849,6 +874,7 @@ You've successfully built your first AI Digital Twin with:
 ## Next Steps
 
 Tomorrow (Day 2), we'll:
+
 - Add personalization with custom data and documents
 - Deploy the backend to AWS Lambda
 - Set up CloudFront for global distribution
@@ -864,3 +890,9 @@ Your Digital Twin is just getting started! Tomorrow we'll give it more personali
 - [uv Documentation](https://docs.astral.sh/uv/)
 
 Ready for Day 2? Your twin is about to get a lot more interesting! 🚀
+
+---
+
+## Next up
+
+**[Day 2](day2.md)** - deploy your twin to AWS with Lambda, S3 and CloudFront.

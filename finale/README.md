@@ -6,6 +6,12 @@
 
 _If you're looking at this in Cursor, please right click on the filename in the Explorer on the left, and select "Open preview", to view it in formatted glory._
 
+### Prerequisites
+
+- The AWS account and `aiengineer` IAM user from Week 1 Day 5, and the AWS CLI configured
+- `uv` installed, from Week 2 Day 1
+- No Docker needed - AgentCore builds your container in the cloud with CodeBuild
+
 ### Step 1: IAM (groan)
 
 You're all pros now, so you get pro-level instructions!
@@ -16,9 +22,9 @@ You're all pros now, so you get pro-level instructions!
 4. Add it to user aiengineer
 5. Attach policies: `AmazonBedrockFullAccess`, `AWSCodeBuildAdminAccess`, `BedrockAgentCoreFullAccess`
 
-Also as of today: you'd need to have access to Claude Sonnet 4 model in us-west-2.
+Also as of today: you'd need Bedrock access to Anthropic's Claude Sonnet 4.6, which is what the Strands Agents SDK now uses by default (via the `global.anthropic.claude-sonnet-4-6` cross-region inference profile, so it isn't tied to one region). If you hit a quota or access error, check Bedrock quotas in your region - see Q42 on [my FAQ](https://edwarddonner.com/faq).
 
-#### Now sign in as your IAM user.
+#### Now sign in as your IAM user
 
 1. Navigate to AWS Bedrock AgentCore
 2. Select Observability in the sidebar
@@ -42,13 +48,25 @@ https://github.com/aws/bedrock-agentcore-sdk-python
 The AgentCore Starter Toolkit (CLI):  
 https://github.com/aws/bedrock-agentcore-starter-toolkit  
 
+### A heads up about the AgentCore CLI (added since the videos)
+
+The `bedrock-agentcore-starter-toolkit` we use below - the thing that gives you the `agentcore` command - now prints a warning saying it is no longer the recommended CLI, and points you at a newer Node-based CLI (`npm install -g @aws/agentcore`).
+
+For this lesson, the starter toolkit still works fine and it's what the videos use, so **stick with it** and ignore the warning. If you want to silence it, set `AGENTCORE_SUPPRESS_RECOMMENDATION=1`. Two other things changed in the newer toolkit:
+
+- `agentcore launch` was renamed to **`agentcore deploy`**. The old name still works as an alias, but I've used the new name below, so what you type matches what the tool expects.
+- The videos say `agentcore launch` - just read that as `agentcore deploy`.
+
 ### Step 3 - introducing the uv project in this folder
 
 I have added just a few dependencies to this project:  
+
 - bedrock-agentcore
 - strands-agents
 - bedrock-agentcore-starter-toolkit
 - pydantic
+
+(The versions are pinned in `uv.lock`, so `uv sync` gives everyone the same, current set.)
 
 So if you do a `cd finale` and then `uv sync` you will have all those packages installed.
 
@@ -104,16 +122,18 @@ NOTE FROM ANDY C.:
 > `uv run agentcore configure -e first.py --region us-west-2`  
 > Once I did that, everything in the AgentCore lesson went without a hitch. It was so fun and easy!
 
+Andy's tip is still the fix if you get region-related errors. It's less likely to bite you now that Strands defaults to a _global_ cross-region inference profile for Claude, but AgentCore Runtime itself is regional - so if your default region doesn't have it, pass `--region us-west-2` as Andy shows.
 
 After you run the command (my one, or use Andy's flag if your Bedrock is in a different region):  
 
-`uv run agentcore launch`
+`uv run agentcore deploy`
 
 And then...
 
 `uv run agentcore invoke '{"prompt": "Hello can you hear me??"}'`
 
 Goodness! Do you realize everything that happened:  
+
 - AgentCore built a container
 - AgentCore deployed it to ECR
 - AgentCore set up all the IAM
@@ -137,13 +157,13 @@ And change `agent = Agent()` to `agent = Agent(tools=[take_square_root])`
 
 And then:
 
-`uv run agentcore launch`
+`uv run agentcore deploy`
 
 `uv run agentcore invoke '{"prompt": "Use your tool to calculate the square root of 1234567 to 3 decimal places"}'`
 
 That's tool use!!
 
-### Step 7 ###
+### Step 7
 
 And now - a new, more powerful agent - the looper!
 
@@ -233,7 +253,7 @@ if __name__ == "__main__":
 
 Pick all the defaults. Then:
 
-`uv run agentcore launch`
+`uv run agentcore deploy`
 
 And then...
 
@@ -297,7 +317,7 @@ And the final step - change the line that sets to tools to add the new tool:
 
 And now:
 
-`uv run agentcore launch`
+`uv run agentcore deploy`
 
 And then...
 
@@ -313,7 +333,6 @@ What fun!
 4. Examine your agents, sessions and traces
 5. I'm intrigued to see how it retried with throttling issues, explaining why it was so slow..
 
-## AND THAT'S IT! Agent deployment in minutes.
+## AND THAT'S IT! Agent deployment in minutes
 
 Your assignment: keep going! How about adding a NextJS frontend, add the other tool (browser automation), make this into a full personal Sidekick!
-

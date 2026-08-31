@@ -7,6 +7,7 @@ Today you'll build a complete full-stack application with a React frontend and P
 ## What You'll Build
 
 A **Business Idea Generator** - an AI-powered SaaS application that:
+
 - Has a modern React frontend built with Next.js (using Pages Router for stability)
 - Uses TypeScript for type safety
 - Connects to a FastAPI backend
@@ -19,9 +20,11 @@ A **Business Idea Generator** - an AI-powered SaaS application that:
 - Completed Day 1 (you should have Node.js and Vercel CLI installed)
 - Your OpenAI API key from Day 1
 
-## Step 1: Create Your Next.js Project
+## Part 1: Build the App
 
-### Open Cursor and Create Your Project
+### Step 1: Create Your Next.js Project
+
+#### Open Cursor and Create Your Project
 
 1. Open Cursor
 2. Open the terminal (Terminal → New Terminal or Ctrl+\` / Cmd+\`)
@@ -29,25 +32,28 @@ A **Business Idea Generator** - an AI-powered SaaS application that:
 4. Create a new Next.js project with TypeScript. This command is a bit longer than the one I type in the video, to account for a recent change:  
 
 ```bash
-npx create-next-app saas --ts --eslint --tailwind --no-src-dir --no-app
+npx create-next-app saas --ts --eslint --tailwind --no-src-dir --no-app --no-import-alias --no-react-compiler
 ```
 
 This creates a new Next.js project with:
+
 - **Pages Router** (the stable, battle-tested routing system)
 - **TypeScript** for type safety
 - **ESLint** for catching errors and enforcing code quality
 - **Tailwind CSS** for utility-first styling
 
-### Open Your Project
+> The last two flags (`--no-import-alias --no-react-compiler`) just answer two newer questions that `create-next-app` would otherwise stop and ask you. If your version asks anything else (for example, whether to create an `AGENTS.md`), just accept the default by pressing Enter.
+
+#### Open Your Project
 
 1. In Cursor: File → Open Folder → Select the "saas" folder that was just created
 2. You'll see several files and folders that Next.js created automatically
 
-### Understanding the Project Structure
+#### Understanding the Project Structure
 
 Next.js created these key files and folders:
 
-```
+```text
 saas/
 ├── pages/              # Pages Router directory (where your pages live)
 │   ├── _app.tsx       # Application wrapper (initializes pages)
@@ -60,17 +66,18 @@ saas/
 ├── public/            # Static files (images, fonts, etc.)
 ├── package.json       # Node.js dependencies and scripts
 ├── tsconfig.json      # TypeScript configuration
-├── next.config.js     # Next.js configuration
+├── next.config.ts     # Next.js configuration
 └── node_modules/      # Installed packages (auto-generated)
 ```
 
 **Key files explained:**
+
 - **`pages/_app.tsx`**: The application wrapper that initializes all pages. Used for global providers and styles
 - **`pages/_document.tsx`**: Custom document for modifying the HTML structure
 - **`pages/index.tsx`**: Your homepage component. This is what users see at "/"
 - **`styles/globals.css`**: Global styles including Tailwind CSS imports
 
-### Clean Up Unnecessary Files
+#### Clean Up Unnecessary Files
 
 Since we're using a Python FastAPI backend (not Next.js API routes), let's remove the sample API directory:
 
@@ -79,9 +86,10 @@ Since we're using a Python FastAPI backend (not Next.js API routes), let's remov
 3. Select **Delete** (or press Delete/Backspace key)
 4. Confirm the deletion when prompted
 
-### What is Tailwind CSS?
+#### What is Tailwind CSS?
 
 **Tailwind CSS** is a utility-first CSS framework. Instead of writing custom CSS, you apply pre-built utility classes directly in your HTML/JSX. For example:
+
 - `bg-blue-500` sets a blue background
 - `text-white` makes text white
 - `p-4` adds padding on all sides
@@ -89,24 +97,25 @@ Since we're using a Python FastAPI backend (not Next.js API routes), let's remov
 
 This approach makes styling faster and more consistent!
 
-## Step 2: Set Up the Backend
+### Step 2: Set Up the Backend
 
-### Create the API Folder
+#### Create the API Folder
 
 In Cursor's file explorer, create a new folder at the root level:
+
 - Right-click in the file explorer → New Folder → name it `api`
 
-### Create Python Dependencies
+#### Create Python Dependencies
 
 Create a new file `requirements.txt` in the root directory with:
 
-```
+```text
 fastapi
 uvicorn
 openai
 ```
 
-### Create the API Server
+#### Create the API Server
 
 Create a new file `api/index.py`:
 
@@ -125,16 +134,17 @@ def idea():
     return response.choices[0].message.content
 ```
 
-## Step 3: Create Your First Page
+### Step 3: Create Your First Page
 
-### Understanding Client Components
+#### Understanding Client Components
 
 In Next.js Pages Router, all page components run on both server and client by default. Since we're using a **Python/FastAPI backend** for our API (not Next.js's server), we'll mark our components with `"use client"` to ensure:
+
 - The component runs in the browser
 - The browser makes direct API calls to our Python backend
 - We're not trying to use Next.js as a middleman server
 
-### Create the Homepage
+#### Create the Homepage
 
 Replace the entire contents of `pages/index.tsx` with:
 
@@ -169,12 +179,13 @@ export default function Home() {
 ```
 
 **What's happening here:**
+
 - `"use client"` tells Next.js this component runs in the browser
 - The browser directly calls our Python FastAPI backend at `/api`
 - We use React hooks to manage the UI state and fetch the data
 - Vercel routes `/api` requests to our Python server (we don't need vercel.json configuration)
 
-### Set Up the Application Wrapper
+#### Set Up the Application Wrapper
 
 The `_app.tsx` file wraps all your pages. Let's create it to import our styles.
 
@@ -189,7 +200,7 @@ export default function MyApp({ Component, pageProps }: AppProps) {
 }
 ```
 
-### Set Up the Document
+#### Set Up the Document
 
 Now let's customize the HTML structure and add metadata.
 
@@ -214,11 +225,11 @@ export default function Document() {
 }
 ```
 
-## Step 4: Configure Your Project
+### Step 4: Configure Your Project
 
 **Note:** We don't need a `vercel.json` file - Vercel automatically detects both Next.js and Python files in the `api` folder using its default configuration.
 
-## Step 5: Link Your Project
+### Step 5: Link Your Project
 
 First, let's create and link your Vercel project:
 
@@ -227,6 +238,7 @@ vercel link
 ```
 
 Follow the prompts:
+
 - Set up and link? → Yes
 - Which scope? → Your personal account
 - Link to existing project? → No
@@ -235,17 +247,18 @@ Follow the prompts:
 
 This creates your Vercel project and links it to your local directory.
 
-## Step 6: Add Your OpenAI API Key
+### Step 6: Add Your OpenAI API Key
 
 Now that the project is created, add your OpenAI API key:
 
 ```bash
 vercel env add OPENAI_API_KEY
 ```
+
 - Paste your API key when prompted
 - Select all environments except development (preview, production) and when prompted whether to mark it as sensitive, say 'yes'
 
-## Step 7: Deploy and Test
+### Step 7: Deploy and Test
 
 Deploy your application to test it:
 
@@ -259,7 +272,7 @@ Visit the URL provided to see your Business Idea Generator loading an AI-generat
 
 **Note:** We test using the deployed version rather than local development, as this ensures both the Next.js frontend and Python backend work together properly.
 
-## Step 8: Deploy to Production
+### Step 8: Deploy to Production
 
 Deploy your working application to production:
 
@@ -332,6 +345,7 @@ export default function Home() {
 ```
 
 **Tailwind classes explained:**
+
 - `prose`: Tailwind Typography plugin class that styles markdown content beautifully
 - `w-full max-w-2xl`: Full width with a maximum width constraint
 - `p-6`: Padding on all sides
@@ -348,6 +362,19 @@ The `prose` class requires the Typography plugin. Install it:
 ```bash
 npm install @tailwindcss/typography
 ```
+
+**IMPORTANT - you must also register the plugin, or `prose` will do nothing.** `create-next-app` now scaffolds **Tailwind CSS v4**, which has no `tailwind.config.js` file - plugins are registered from your CSS instead.
+
+Open `styles/globals.css` and add a `@plugin` line directly underneath the existing `@import` line at the very top of the file:
+
+```css
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+```
+
+Leave the rest of `globals.css` exactly as it is.
+
+> If you're curious how to tell which version you have: Tailwind v4 projects start `globals.css` with `@import "tailwindcss";` and have no `tailwind.config.js`. In the older v3, you'd instead add the plugin to the `plugins: []` array in `tailwind.config.js`.
 
 ### Update the Backend for Streaming
 
@@ -539,6 +566,7 @@ export default function Home() {
 ```
 
 **Professional Tailwind styling:**
+
 - `min-h-screen`: Full viewport height
 - `bg-gradient-to-br`: Beautiful gradient background with dark mode support
 - `container mx-auto`: Centered container with responsive padding
@@ -547,7 +575,7 @@ export default function Home() {
 - `animate-pulse`: Loading animation while content streams
 - `markdown-content`: Custom class that restores HTML styling for markdown
 
-## Step 9: Deploy Final Version
+### Deploy Your Final Version
 
 Deploy your enhanced application. If the styles don't look right, check that you didn't overwrite the old CSS with the new CSS in the instruction above..
 
@@ -558,6 +586,7 @@ vercel --prod
 ## Congratulations! 🎉
 
 You've built a complete SaaS application with:
+
 - ✅ Modern React frontend with Next.js Pages Router
 - ✅ TypeScript for type safety
 - ✅ FastAPI Python backend
@@ -579,12 +608,14 @@ You've built a complete SaaS application with:
 ## Understanding Pages Router Concepts
 
 **Pages Router Structure:**
+
 - Each file in `pages/` becomes a route
 - `pages/index.tsx` → `/`
 - `pages/product.tsx` → `/product`
 - `pages/api/` → API routes (though we're using Python instead)
 
 **Client-Side Rendering (`"use client"`):**
+
 - Components marked with `"use client"` run primarily in the browser
 - Can use React hooks (useState, useEffect)
 - Perfect for dynamic, interactive UI
@@ -604,18 +635,22 @@ In this project, we used client-side components because we needed browser featur
 ## Troubleshooting
 
 ### "Module not found" errors
+
 - Make sure you've installed all npm packages
 - Try deleting `node_modules` and running `npm install` again
 
 ### API not responding
+
 - Check that your OpenAI API key is set correctly
 - Verify you have credits in your OpenAI account
 
 ### Streaming not working
+
 - Some browsers block SSE on localhost - try a different browser
 - Check the browser console for errors
 
 ### ESLint warnings
+
 - ESLint helps catch potential issues in your code
 - Yellow squiggly lines are warnings (code will still run)
 - Red squiggly lines are errors (should be fixed)
@@ -625,10 +660,18 @@ In this project, we used client-side components because we needed browser featur
   - "Unused variable" - Remove variables you're not using
 
 ### TypeScript errors
+
 - Ensure all TypeScript packages are installed
 - Restart your development server after installing types
 
 ### Deployment issues
+
 - Make sure all files are saved before deploying
 - Check that vercel.json is properly formatted
 - Ensure your API key is added to Vercel environment variables
+
+---
+
+## Next up
+
+**[Day 3](day3.md)** - add real user authentication with Clerk.

@@ -25,15 +25,19 @@ We'll set up budget alerts at $1, $5, and $10 to track spending. This is a cruci
 Before we start, let's understand the AWS services:
 
 ### AWS App Runner
+
 **App Runner** is AWS's simplest way to deploy containerized web applications. Think of it as "Vercel for Docker containers" - it automatically handles HTTPS certificates, load balancing, and scaling. You just provide a container, and App Runner does the rest.
 
 ### Amazon ECR (Elastic Container Registry)
+
 **ECR** is like GitHub but for Docker images. It's where we'll store our containerized application before deploying it to App Runner.
 
 ### AWS IAM (Identity and Access Management)
+
 **IAM** controls who can access what in your AWS account. We'll create a special user account with limited permissions for safety - never use your root account for daily work!
 
 ### CloudWatch
+
 **CloudWatch** is AWS's monitoring service. It collects logs from your application and helps you debug issues - like having the browser console for your server.
 
 ## Part 1: Create Your AWS Account
@@ -45,11 +49,11 @@ There's an option for first time users of AWS to select the "free tier" of AWS. 
 This was discovered brilliantly by student Andy C. who shared:
 
 > **Cryptic App Runner service error message: "The AWS Access Key Id needs a subscription for the service"**  
-> 
+>
 > I struggled with this message for 24 hours and wanted to let everyone know the root cause. I get it when (1) I try to set up a new "Auto scaling" config (e.g., "Basic" that Ed suggests) and (2) when I try to save and create my app runner service.
 >
 > Here was the problem: I was signed up for the free tier of AWS. Apparently the free tier does not allow for you to use App Runner. Argh. Once I upgraded to paid tier, I was golden.
-> 
+>
 > I tried so many other things to try to fix this issue and spent hours trying to understand IAM, thinking that was the problem. I hope this message saves someone else a huge amount of time!
 
 This is an example of the kind of infrastructure horrors you may face - and with enormous appreciation to Andy for digging in, finding the root cause and sharing with us all.
@@ -90,12 +94,14 @@ You now have an AWS root account. This is like having admin access - powerful bu
 6. Set up three budgets:
 
 **Budget 1 - Early Warning ($1)**:
+
 - Budget name: `early-warning`
 - Enter budgeted amount: `1` USD
 - Email recipients: Enter your email address
 - Click **Create budget**
 
 **Budget 2 - Caution ($5)**:
+
 - Repeat steps: Create budget → Use a template → Monthly cost budget
 - Budget name: `caution-budget`
 - Enter budgeted amount: `5` USD
@@ -103,6 +109,7 @@ You now have an AWS root account. This is like having admin access - powerful bu
 - Click **Create budget**
 
 **Budget 3 - Stop Alert ($10)**:
+
 - Repeat steps: Create budget → Use a template → Monthly cost budget
 - Budget name: `stop-budget`
 - Enter budgeted amount: `10` USD
@@ -110,6 +117,7 @@ You now have an AWS root account. This is like having admin access - powerful bu
 - Click **Create budget**
 
 AWS will automatically notify you when:
+
 - Your actual spend reaches 85% of budget
 - Your actual spend reaches 100% of budget
 - Your forecasted spend is expected to reach 100%
@@ -185,6 +193,7 @@ docker --version
 You should see: `Docker version 26.x.x` or similar
 
 Test Docker:
+
 ```bash
 docker run hello-world
 ```
@@ -200,7 +209,8 @@ We need to modify our Day 4 application for AWS deployment. The key change: we'l
 ### Step 1: Update Project Structure
 
 Your project should look like this:
-```
+
+```text
 saas/
 ├── pages/                  # Next.js Pages Router
 ├── styles/                 # CSS styles
@@ -219,7 +229,7 @@ saas/
 
 **Important Architecture Change**: On Vercel, our Next.js app could make server-side requests. For AWS simplicity, we'll export Next.js as static HTML/JS files and serve them from our Python backend. This means everything runs in one container!
 
-**Note about Middleware**: 
+**Note about Middleware**:
 With Pages Router, we don't use middleware files. Authentication is handled entirely by Clerk's client-side components (`<Protect>`, `<SignedIn>`, etc.) which work perfectly with static exports.
 
 Update `next.config.ts`:
@@ -370,6 +380,7 @@ AWS_ACCOUNT_ID=123456789012
 ```
 
 **To find your AWS Account ID**:
+
 1. In AWS Console, click your username (top right)
 2. Copy the 12-digit Account ID
 
@@ -437,7 +448,7 @@ CMD ["uvicorn", "server:app", "--host", "0.0.0.0", "--port", "8000"]
 
 Create `.dockerignore` to exclude unnecessary files:
 
-```
+```text
 node_modules
 .next
 .env
@@ -459,11 +470,13 @@ Let's test our containerized app before deploying to AWS.
 ### Step 1: Load Environment Variables
 
 **Mac/Linux** (Terminal):
+
 ```bash
 export $(cat .env | grep -v '^#' | xargs)
 ```
 
 **Windows** (PowerShell):
+
 ```powershell
 Get-Content .env | ForEach-Object {
     if ($_ -match '^(.+?)=(.+)$') {
@@ -477,6 +490,7 @@ Get-Content .env | ForEach-Object {
 Build your container:
 
 **Mac/Linux**:
+
 ```bash
 docker build \
   --build-arg NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="$NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY" \
@@ -484,6 +498,7 @@ docker build \
 ```
 
 **Windows PowerShell**:
+
 ```powershell
 docker build `
   --build-arg NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="$env:NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY" `
@@ -495,6 +510,7 @@ This will take 2-3 minutes the first time.
 ### Step 3: Run Locally
 
 **Mac/Linux**:
+
 ```bash
 docker run -p 8000:8000 \
   -e CLERK_SECRET_KEY="$CLERK_SECRET_KEY" \
@@ -504,6 +520,7 @@ docker run -p 8000:8000 \
 ```
 
 **Windows PowerShell**:
+
 ```powershell
 docker run -p 8000:8000 `
   -e CLERK_SECRET_KEY="$env:CLERK_SECRET_KEY" `
@@ -563,15 +580,18 @@ We need AWS CLI to push our image.
 #### Configure AWS CLI
 
 Install AWS CLI if you haven't:
+
 - **Mac**: `brew install awscli` or download from [aws.amazon.com/cli](https://aws.amazon.com/cli/)
 - **Windows**: Download installer from [aws.amazon.com/cli](https://aws.amazon.com/cli/)
 
 Configure it:
+
 ```bash
 aws configure
 ```
 
 Enter:
+
 - AWS Access Key ID: (paste your key)
 - AWS Secret Access Key: (paste your secret)
 - Default region: Choose based on your location:
@@ -595,6 +615,7 @@ Enter:
 **Understanding the authentication**: The first command gets a temporary password from AWS and pipes it to Docker. You won't be prompted for a password - it's all automatic!
 
 **Mac/Linux**:
+
 ```bash
 # 1. Authenticate Docker to ECR (using your .env values!)
 aws ecr get-login-password --region $DEFAULT_AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$DEFAULT_AWS_REGION.amazonaws.com
@@ -613,6 +634,7 @@ docker push $AWS_ACCOUNT_ID.dkr.ecr.$DEFAULT_AWS_REGION.amazonaws.com/consultati
 ```
 
 **Windows PowerShell**:
+
 ```powershell
 # 1. Authenticate Docker to ECR (using your .env values!)
 aws ecr get-login-password --region $env:DEFAULT_AWS_REGION | docker login --username AWS --password-stdin "$env:AWS_ACCOUNT_ID.dkr.ecr.$env:DEFAULT_AWS_REGION.amazonaws.com"
@@ -648,7 +670,7 @@ The push will take 2-5 minutes depending on your internet speed.
 1. **Source**:
    - Repository type: **Container registry**
    - Provider: **Amazon ECR**
-2. Click **Browse** 
+2. Click **Browse**
 3. Select `consultation-app` → Select `latest` tag
 4. **Deployment settings**:
    - Deployment trigger: **Manual** (to control costs)
@@ -722,16 +744,19 @@ The push will take 2-5 minutes depending on your internet speed.
 ### Common Issues and Solutions
 
 **"Unhealthy" status**:
+
 - Check application logs for Python errors
 - Verify all environment variables are set
 - Ensure health check path is `/health`
 
 **"Authentication failed"**:
+
 - Double-check Clerk environment variables
 - Verify JWKS URL is correct
 - Check CloudWatch logs for specific errors
 
 **Page not loading**:
+
 - Ensure port is set to `8000`
 - Check that Docker image was built with `--platform linux/amd64`
 - Verify static files are being served
@@ -743,6 +768,7 @@ When you make code changes:
 ### Step 1: Rebuild and Push
 
 **Mac/Linux**:
+
 ```bash
 # 1. Rebuild with platform flag
 docker build \
@@ -758,6 +784,7 @@ docker push YOUR-ACCOUNT-ID.dkr.ecr.YOUR-REGION.amazonaws.com/consultation-app:l
 ```
 
 **Windows PowerShell**:
+
 ```powershell
 # 1. Rebuild with platform flag
 docker build `
@@ -784,6 +811,7 @@ docker push YOUR-ACCOUNT-ID.dkr.ecr.YOUR-REGION.amazonaws.com/consultation-app:l
 ### What This Costs
 
 With our minimal configuration (1 instance always running):
+
 - App Runner: ~$0.007/hour = ~$5/month for continuous running
 - ECR: ~$0.10/GB/month for image storage
 - Total: ~$5-6/month
@@ -800,6 +828,7 @@ With our minimal configuration (1 instance always running):
 ### Emergency Cost Control
 
 If you hit budget alerts:
+
 1. Go to App Runner → Select service → **Actions** → **Pause service**
 2. Review CloudWatch logs for any issues
 3. Check ECR for multiple image versions (delete old ones)
@@ -807,6 +836,7 @@ If you hit budget alerts:
 ## What You've Accomplished
 
 You've successfully:
+
 - ✅ Created a production AWS account with security best practices
 - ✅ Containerized a full-stack application with Docker
 - ✅ Deployed to AWS App Runner with HTTPS and monitoring
@@ -816,12 +846,14 @@ You've successfully:
 ## Architecture Comparison: Vercel vs AWS
 
 **Vercel Architecture**:
+
 - Next.js runs on Vercel's servers
 - API routes handled by Vercel Functions
 - Automatic deployments from Git
 - Zero-config setup
 
 **AWS Architecture**:
+
 - Everything runs in a single Docker container
 - FastAPI serves both API and static files
 - Manual deployments (or automated with CI/CD)
@@ -832,11 +864,13 @@ Both are valid approaches! Vercel optimizes for developer experience, while AWS 
 ## Next Steps
 
 ### Immediate Improvements
+
 1. **Custom domain**: Add your own domain in App Runner settings
 2. **Auto-deployment**: Set up GitHub Actions for automated deployments
 3. **Monitoring**: Add CloudWatch alarms for errors
 
 ### Advanced Enhancements
+
 1. **Database**: Add Amazon RDS for data persistence
 2. **File storage**: Use S3 for user uploads
 3. **Caching**: Add ElastiCache for performance
@@ -848,6 +882,7 @@ Both are valid approaches! Vercel optimizes for developer experience, while AWS 
 ### Docker Issues
 
 **"Cannot connect to Docker daemon"**:
+
 ```bash
 # Make sure Docker Desktop is running
 # Mac: Check for whale icon in menu bar
@@ -855,6 +890,7 @@ Both are valid approaches! Vercel optimizes for developer experience, while AWS 
 ```
 
 **"Exec format error" when running container**:
+
 ```bash
 # You forgot --platform flag. Rebuild:
 docker build --platform linux/amd64 ...
@@ -863,23 +899,27 @@ docker build --platform linux/amd64 ...
 ### AWS Issues
 
 **"Unauthorized" in ECR push**:
+
 ```bash
 # Re-authenticate (use your region):
 aws ecr get-login-password --region YOUR-REGION | docker login --username AWS --password-stdin [your-ecr-url]
 ```
 
 **"Access Denied" errors**:
+
 - Check IAM user has all required policies
 - Verify AWS CLI is configured with correct credentials
 
 ### Application Issues
 
 **Clerk authentication not working**:
+
 - Verify all three Clerk environment variables
 - Check JWKS URL matches your Clerk app
 - Ensure frontend was built with public key
 
 **API calls failing**:
+
 - Check browser console for CORS errors
 - Verify `/api/consultation` path is correct
 - Check CloudWatch logs for Python errors

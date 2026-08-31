@@ -22,6 +22,7 @@ This guide will walk you through deploying a simple FastAPI application to Verce
 > Note: You can use a different IDE if you prefer (VS Code, PyCharm, etc.), but these instructions assume you're using Cursor.
 
 **Windows:**
+
 1. Visit [https://cursor.com](https://cursor.com)
 2. Click "Download for Windows"
 3. Run the downloaded `.exe` installer
@@ -29,6 +30,7 @@ This guide will walk you through deploying a simple FastAPI application to Verce
 5. Launch Cursor from your Start Menu or Desktop
 
 **Mac:**
+
 1. Visit [https://cursor.com](https://cursor.com)
 2. Click "Download for Mac"
 3. Open the downloaded `.dmg` file
@@ -36,17 +38,22 @@ This guide will walk you through deploying a simple FastAPI application to Verce
 5. Launch Cursor from Applications or Spotlight (Cmd+Space, type "Cursor")
 
 **Linux:**
+
 1. Visit [https://cursor.com](https://cursor.com)
 2. Click "Download for Linux"
 3. Extract the `.tar.gz` file:
+
    ```bash
    tar -xzf cursor-*.tar.gz
    ```
+
 4. Move to `/opt` and create a symlink:
+
    ```bash
    sudo mv cursor /opt/
    sudo ln -s /opt/cursor/cursor /usr/local/bin/cursor
    ```
+
 5. Launch by typing `cursor` in terminal
 
 ### Create Your Project Folder
@@ -76,7 +83,7 @@ Save the file (Ctrl+S on Windows/Linux, Cmd+S on Mac).
 
 Create a new file called `requirements.txt` with the following content:
 
-```
+```text
 fastapi
 uvicorn
 ```
@@ -120,6 +127,7 @@ Node.js is required for the Vercel CLI.
 3. After installation, open a **new** terminal window
 
 4. Verify installation:
+
    ```bash
    node --version
    npm --version
@@ -138,22 +146,27 @@ Both commands should return version numbers if installed correctly.
 ### Install Vercel CLI and Deploy
 
 1. Install Vercel CLI globally:
+
    ```bash
    npm install -g vercel
    ```
 
 2. Login to Vercel:
+
    ```bash
    vercel login
    ```
+
    - Enter the email address you used to sign up for Vercel
    - Check your email for a verification link and click it
    - Return to the terminal - it should confirm you're logged in
 
 3. Deploy to Vercel (development):
+
    ```bash
    vercel .
    ```
+
    - When prompted "Set up and deploy?"  → Press Enter (Yes)
    - "Which scope?"  → Select your personal account
    - "Link to existing project?"  → Type `n` and press Enter (No)
@@ -166,21 +179,23 @@ Both commands should return version numbers if installed correctly.
    - Click the URL provided (or copy and paste into browser)
    - You should see: **"Live from production!"**
 
-
 ## Congratulations! 🎉
 
 You've successfully deployed your first API to production! Your API is now:
+
 - ✅ Live on the internet
 - ✅ Automatically scaled
 - ✅ Secured with HTTPS
 - ✅ Accessible from anywhere in the world
 
-### What You've Learned:
+### What You've Learned
+
 - How to create a simple FastAPI application
 - How to configure a project for Vercel deployment
 - How to use the Vercel CLI for deployment
 
-### Next Steps:
+### Next Steps
+
 - Try modifying the message in `instant.py` and redeploying
 - Add more API endpoints
 - Explore Vercel's dashboard at [https://vercel.com/dashboard](https://vercel.com/dashboard)
@@ -188,18 +203,28 @@ You've successfully deployed your first API to production! Your API is now:
 ## Troubleshooting
 
 ### "vercel: command not found"
+
 - Make sure you opened a **new** terminal after installing Node.js
 - Try running `npm install -g vercel` again
 
 ### "Python version not supported"
-- Vercel supports Python 3.9, 3.10, 3.11, and 3.12
-- The default should work, but if you have issues, add a `runtime.txt` file with: `python-3.12`
+
+- Vercel's Python runtime offers 3.12 (the default), 3.13 and 3.14. Older versions like 3.9 and 3.11 are no longer available.
+- The default should work, but if you need to pin a version, add a `.python-version` file containing just `3.12` (Vercel also reads the version from `pyproject.toml` or `Pipfile.lock`). Note that `runtime.txt` is *not* used by Vercel.
 
 ### Deployment fails
+
 - Check that all three files (instant.py, requirements.txt, vercel.json) are in your project folder
 - Make sure you're in the correct directory when running `vercel`
 - Ensure your vercel.json has the exact JSON structure shown above
 
 ### Need Help?
+
 - Check Vercel's documentation: [https://vercel.com/docs](https://vercel.com/docs)
 - Ask in class or post in the course forum
+
+---
+
+## Next up
+
+Continue straight on to **[Day 1, Part 2](day1.part2.md)** - we'll add OpenAI to the app you just deployed.

@@ -37,7 +37,7 @@ vercel env add OPENAI_API_KEY
 
 Open your `requirements.txt` file and add the OpenAI library:
 
-```
+```text
 fastapi
 uvicorn
 openai
@@ -81,6 +81,7 @@ vercel .
 ```
 
 Once it's deployed:
+
 1. Visit the URL provided
 2. You should see a dynamic, AI-generated welcome message!
 3. Refresh the page to see different variations
@@ -91,29 +92,33 @@ Deploy to production when ready:
 vercel --prod
 ```
 
-## What's Happening? >
+## What's Happening? 🤖
 
 Your app now:
+
 - Connects to OpenAI's API using your secure API key
 - Generates unique, enthusiastic welcome messages for each visitor
 - Returns properly formatted HTML with the AI's response
 - Runs entirely serverless on Vercel's infrastructure
 
-## Congratulations! <�
+## Congratulations! 🎉
 
 You've successfully:
--  Integrated AI into a production application
--  Secured API credentials using environment variables
--  Created dynamic, personalized content
--  Built your first AI-powered web application
 
-## What You've Learned:
+- ✅ Integrated AI into a production application
+- ✅ Secured API credentials using environment variables
+- ✅ Created dynamic, personalized content
+- ✅ Built your first AI-powered web application
+
+## What You've Learned
+
 - How to securely manage API keys in production
 - How to integrate OpenAI's API with FastAPI
 - How to use environment variables in Vercel
 - How to create dynamic HTML responses with AI-generated content
 
-## Next Steps:
+## Next Steps
+
 - Try modifying the prompt to create different types of content
 - Add query parameters to customize the AI's response
 - Experiment with different OpenAI models
@@ -122,22 +127,33 @@ You've successfully:
 ## Troubleshooting
 
 ### "OpenAI API key not found"
+
 - Make sure you added the environment variable with `vercel env add`
 - Check that the key name is exactly `OPENAI_API_KEY`
 - Redeploy after adding the environment variable
 
 ### "Insufficient credits"
+
 - Check your OpenAI account balance at platform.openai.com
 - Ensure you've added the $5 minimum payment
 
 ### Page loads slowly
+
 - The first request may be slower as the serverless function cold starts
 - Subsequent requests should be faster
 - This is normal behavior for serverless functions
 
-## Security Note =
+## Security Note 🔒
+
 Your API key is:
+
 - Never exposed in your code
 - Securely stored in Vercel's environment variables
 - Only accessible to your deployed application
 - Protected from being visible in browser developer tools
+
+---
+
+## Next up
+
+**[Day 2](day2.md)** - build a full-stack SaaS product with Next.js and FastAPI.

@@ -27,13 +27,19 @@ Amazon Bedrock is AWS's fully managed service that provides access to foundation
 
 ### Amazon Nova Models
 
-AWS's Nova family of models are their latest foundation models optimized for different use cases:
+AWS's Nova family are Amazon's own foundation models, optimized for different use cases:
 
-- **Nova Micro** - Fastest, most cost-effective for simple tasks
-- **Nova Lite** - Balanced performance for general use
-- **Nova Pro** - Highest capability for complex reasoning
+- **Nova 2 Lite** - the current generation; cost-effective, multimodal, and what we'll use
+- **Nova Micro** - previous generation, text-only, fastest and cheapest
+- **Nova Pro** - previous generation, highest capability for complex reasoning
 
-Today, we'll implement all three so you can choose based on your needs.
+Today we'll make the model a configuration setting, so you can switch between them and compare.
+
+## Prerequisites
+
+- Completed Day 2 - your twin is live on AWS via CloudFront, with Lambda, API Gateway and S3 behind it
+- Your root AWS credentials to hand, since we need to change IAM permissions
+- Docker Desktop running, to rebuild the Lambda package
 
 ## Part 1: Configure IAM Permissions
 
@@ -56,6 +62,7 @@ Since we need to modify IAM permissions, sign in as the root user:
 6. Click **Attach policies**
 
 Your TwinAccess group now has these policies:
+
 - AWSLambda_FullAccess
 - AmazonS3FullAccess  
 - AmazonAPIGatewayAdministrator
@@ -63,18 +70,17 @@ Your TwinAccess group now has these policies:
 - IAMReadOnlyAccess
 - **AmazonBedrockFullAccess** (new!)
 - **CloudWatchFullAccess** (new!)
-- **AmazonDynamoDBFullAccess** (VERY new!)
 
-That last entry was a catch by student Andy C (thanks once again Andy) - without this, you may get a permissions error in Day 5.
+(Earlier versions of these notes also asked for **AmazonDynamoDBFullAccess** - a catch by student Andy C, thank you Andy! It was needed for the Terraform state-lock table on Day 5. Day 5 now uses Terraform's native S3 state locking instead, so you no longer need it. It does no harm if you've already attached it.)
 
 ### Step 3: Sign Back In as IAM User
 
 1. Sign out from the root account
 2. Sign back in as `aiengineer` with your IAM credentials
 
-## Part 2: Request Access to Nova Models - THIS HAS CHANGED! PLEASE READ CAREFULLY.
+## Part 2: Request Access to Nova Models - THIS HAS CHANGED! PLEASE READ CAREFULLY
 
-**VERY IMPORTANT HEADS UP - Amazon Bedrock models, quotas and inference profiles**
+### VERY IMPORTANT HEADS UP - Amazon Bedrock models, quotas and inference profiles
 
 As of 2026, AWS has changed its approach for model access:
 
@@ -82,20 +88,23 @@ As of 2026, AWS has changed its approach for model access:
 2. AWS now has a quota-based system for how much you can use each model; sometimes you need to request quotas
 3. Model names have changed
 
-In the videos, I use Bedrock model ids like this:   
+In the videos, I use Bedrock model ids like this:
 `amazon.nova-lite-v1:0`  
 
 There are 2 problems with this:  
+
 1. Nova has now updated to version 2: `amazon.nova-2-lite-v1:0`  
 2. It is better to use a different kind of model name known as a "cross-region inference profile" that contains a prefix, like `global.amazon.nova-2-lite-v1:0`
 
 When you use a cross-region inference profile, you're telling Bedrock that it can pick the region to use. That typically has higher quotas and less approvals.
 
 You should start with the global one: `global.amazon.nova-2-lite-v1:0`  
-And if that has quotas, you should try a geography specific one:  
-`us.amazon.nova-lite-v1:0`  
-`eu.amazon.nova-lite-v1:0`  
-`ap.amazon.nova-lite-v1:0`
+And if that has quota problems, you should try a geography specific one:  
+`us.amazon.nova-2-lite-v1:0`  
+`eu.amazon.nova-2-lite-v1:0`  
+`jp.amazon.nova-2-lite-v1:0`
+
+(Note that for Nova 2 the geographies are `us`, `eu` and `jp` - there is no `ap` profile, unlike the older Nova 1 models.)
 
 You may also need to change your Bedrock Region if you get issues. A safe choice is `us-east-1`. It doesn't need to match the region of your other services like lambda.
 
@@ -116,6 +125,7 @@ The Nova models offer different price points based on their capabilities:
 For current pricing details, visit: [AWS Bedrock Pricing](https://aws.amazon.com/bedrock/pricing/)
 
 The pricing page will show you:
+
 - Cost per 1,000 input tokens
 - Cost per 1,000 output tokens
 - Comparison with other available models
@@ -129,7 +139,7 @@ Generally, Nova Micro and Lite are very cost-effective options for most conversa
 
 Update `twin/backend/requirements.txt` - remove the openai package since we're not using it:
 
-```
+```text
 fastapi
 uvicorn
 python-dotenv
@@ -395,16 +405,19 @@ if __name__ == "__main__":
 4. Click **Edit**
 5. Add these new variables:
    - Key: `DEFAULT_AWS_REGION` | Value: `us-east-1` (or your region)
-   - Key: `BEDROCK_MODEL_ID` | Value: `amazon.nova-lite-v1:0` and remember that this might need a "us." or "eu." prefix if you get a Bedrock error  
+   - Key: `BEDROCK_MODEL_ID` | Value: `global.amazon.nova-2-lite-v1:0` (see the Heads Up at the top of this document - if you hit quota problems, try `us.`, `eu.` or `jp.` in place of `global.`)
 6. You can now remove `OPENAI_API_KEY` since we're not using it
 7. Click **Save**
 
 ### Model ID Options
 
-You can change `BEDROCK_MODEL_ID` to any of these, and you might need to add the "us." or "eu." prefix, as described in the Heads Up at the top:  
-- `amazon.nova-micro-v1:0` - Fastest and cheapest
-- `amazon.nova-lite-v1:0` - Balanced (recommended)
-- `amazon.nova-pro-v1:0` - Most capable but more expensive
+You can change `BEDROCK_MODEL_ID` to any of these. Always keep the inference profile prefix (`global.`, or `us.` / `eu.` / `jp.`), as described in the Heads Up at the top:  
+
+- `global.amazon.nova-2-lite-v1:0` - the current generation, and what we use (recommended)
+- `global.amazon.nova-micro-v1:0` - previous generation, text only, fastest and cheapest
+- `global.amazon.nova-pro-v1:0` - previous generation, most capable but more expensive
+
+The older Nova 1 models (`amazon.nova-micro-v1:0`, `amazon.nova-lite-v1:0`, `amazon.nova-pro-v1:0`) still exist, but they're only offered on-demand in a handful of regions, so using them without a profile prefix is the most common cause of a "model not found" or validation error.
 
 ### Step 2: Add Bedrock Permissions to Lambda
 
@@ -432,7 +445,7 @@ This creates a new `lambda-deployment.zip` with the updated dependencies.
 
 We'll upload your code via S3, which is more reliable for larger packages and slower connections.
 
-**Mac/Linux:**
+#### Mac/Linux
 
 ```bash
 # Load environment variables
@@ -462,7 +475,7 @@ aws s3 rm s3://$DEPLOY_BUCKET/lambda-deployment.zip
 aws s3 rb s3://$DEPLOY_BUCKET
 ```
 
-**Windows (PowerShell): starting in the project root**
+#### Windows (PowerShell): starting in the project root
 
 ```powershell
 # Load environment variables
@@ -497,7 +510,7 @@ aws s3 rm s3://$deployBucket/lambda-deployment.zip
 aws s3 rb s3://$deployBucket
 ```
 
-**Alternative: Direct Upload (for fast connections only)**
+#### Alternative: Direct Upload (for fast connections only)
 
 If you have a fast, stable connection, you can upload directly:
 
@@ -509,6 +522,7 @@ aws lambda update-function-code \
 ```
 
 **Note**: The S3 method is recommended because:
+
 - S3 uploads can resume if interrupted
 - AWS Lambda pulls directly from S3 (faster than uploading through CLI)
 - Works better with corporate firewalls and VPNs
@@ -526,7 +540,7 @@ Wait for the update to complete. You should see output with `"LastUpdateStatus":
 ```json
 {
   "statusCode": 200,
-  "body": "{\"status\":\"healthy\",\"use_s3\":true,\"bedrock_model\":\"amazon.nova-lite-v1:0\"}"
+  "body": "{\"status\":\"healthy\",\"use_s3\":true,\"bedrock_model\":\"global.amazon.nova-2-lite-v1:0\"}"
 }
 ```
 
@@ -545,7 +559,7 @@ You should see the Bedrock model in the response.
 3. Test that the chat is working properly - if you get a reply "Sorry, I encountered an error. Please try again" then see below.  
 4. Verify that responses are coming through successfully
 
-If your twin replies "Sorry, I encountered an error. Please try again" then you may be receiving an error from the server. See the Browser's Javascript Console and you'll probably see a 500 error from the server. If it's a Bedrock error, then try adding the "us." or "eu." prefix to the model name, like us.amazon.nova-lite-v1:0  or eu.amazon.nova-lite-v1:0.
+If your twin replies "Sorry, I encountered an error. Please try again" then you may be receiving an error from the server. See the Browser's Javascript Console and you'll probably see a 500 error from the server. If it's a Bedrock error, then try swapping the `global.` prefix on the model name for a geography-specific one, like us.amazon.nova-2-lite-v1:0 or eu.amazon.nova-2-lite-v1:0.
 
 ## Part 7: CloudWatch Monitoring
 
@@ -593,25 +607,29 @@ Let's create a dashboard to monitor everything at a glance:
 2. Name: `twin-monitoring`
 3. Add widgets:
 
-**Widget 1: Lambda Invocations**
+#### Widget 1: Lambda Invocations
+
 - Widget type: Line
 - Metric: Lambda → twin-api → Invocations
 - Statistic: Sum
 - Period: 5 minutes
 
-**Widget 2: Lambda Duration**
+#### Widget 2: Lambda Duration
+
 - Widget type: Line  
 - Metric: Lambda → twin-api → Duration
 - Statistic: Average
 - Period: 5 minutes
 
-**Widget 3: Lambda Errors**
+#### Widget 3: Lambda Errors
+
 - Widget type: Number
 - Metric: Lambda → twin-api → Errors
 - Statistic: Sum
 - Period: 1 hour
 
-**Widget 4: Bedrock Invocations**
+#### Widget 4: Bedrock Invocations
+
 - Widget type: Line
 - Metric: AWS/Bedrock → Your Model → Invocations
 - Statistic: Sum
@@ -646,17 +664,17 @@ Monitor your AWS costs:
 
 Let's compare the Nova models. Update your Lambda environment variable `BEDROCK_MODEL_ID` to test each:
 
-1. **Nova Micro** (`amazon.nova-micro-v1:0`)
+1. **Nova Micro** (`global.amazon.nova-micro-v1:0`)
    - Fastest response (typically <1 second)
    - Good for simple Q&A
    - Lowest cost
 
-2. **Nova Lite** (`amazon.nova-lite-v1:0`)
+2. **Nova 2 Lite** (`global.amazon.nova-2-lite-v1:0`)
    - Balanced performance (1-2 seconds)
    - Good for most conversations
    - Recommended for production
 
-3. **Nova Pro** (`amazon.nova-pro-v1:0`)
+3. **Nova Pro** (`global.amazon.nova-pro-v1:0`)
    - Most sophisticated responses (2-4 seconds)
    - Best for complex reasoning
    - Higher cost
@@ -668,7 +686,7 @@ After testing each model, check CloudWatch:
 1. Go to CloudWatch → Log groups → `/aws/lambda/twin-api`
 2. Use Log Insights with this query:
 
-```
+```text
 fields @timestamp, @duration
 | filter @type = "REPORT"
 | stats avg(@duration) as avg_duration,
@@ -688,25 +706,26 @@ If you see access denied errors:
 1. Verify IAM permissions:
    - Lambda execution role has `AmazonBedrockFullAccess`
    - Your IAM user has Bedrock permissions
-2. Check model access:
-   - Go to Bedrock → Model access
-   - Ensure Nova models show "Access granted"
+2. Check quota rather than model access:
+   - As of 2026 you no longer request access to Nova models - see the Heads Up at the top of this document
+   - If you're being throttled, check your Bedrock quotas (Q42 on my FAQ has the full walkthrough)
 3. Verify region:
-   - Bedrock must be in the same region as Lambda
+   - Your `DEFAULT_AWS_REGION` must be a region where Bedrock is available - `us-east-1` is a safe choice
+   - It does *not* have to be the same region as your Lambda function
 
 ### "Model Not Found" Errors
 
 1. Check the model ID is correct:
-   - `amazon.nova-micro-v1:0` (not v1.0 or v1)
-   - Case sensitive
-2. Verify model is available in your region
-3. Ensure model access is granted
+   - `global.amazon.nova-2-lite-v1:0` (not v1.0 or v1)
+   - Case sensitive, and don't drop the `global.` prefix
+2. If you removed the inference profile prefix, put it back - bare model IDs are only served in a few regions
+3. If it still fails, try a geography-specific profile (`us.`, `eu.` or `jp.`)
 
 ### High Latency Issues
 
 If responses are slow:
 
-1. Try Nova Micro for faster responses
+1. Try `global.amazon.nova-micro-v1:0` for faster responses
 2. Check Lambda timeout (should be 30+ seconds)
 3. Review CloudWatch logs for bottlenecks
 4. Consider increasing Lambda memory (faster CPU)
@@ -737,6 +756,7 @@ If responses are slow:
 ### Estimated Monthly Costs
 
 Your costs will depend on:
+
 - Number of conversations per month
 - Average conversation length
 - Choice of Nova model
@@ -758,7 +778,7 @@ Check the [AWS Bedrock Pricing](https://aws.amazon.com/bedrock/pricing/) page an
 
 Your updated architecture:
 
-```
+```text
 User Browser
     ↓ HTTPS
 CloudFront (CDN)
@@ -774,6 +794,7 @@ Lambda Function (Backend)
 ```
 
 All services now stay within AWS, providing:
+
 - Lower latency (no external API calls)
 - Better security (IAM integration)
 - Potential cost savings
@@ -782,6 +803,7 @@ All services now stay within AWS, providing:
 ## Next Steps
 
 Tomorrow (Day 4), we'll:
+
 - Introduce Infrastructure as Code with Terraform
 - Automate the entire deployment process
 - Implement environment management (dev/staging/prod)
@@ -799,3 +821,9 @@ Your Digital Twin is now powered entirely by AWS services - a true cloud-native 
 - [AWS Cost Management](https://aws.amazon.com/cost-management/)
 
 Congratulations on successfully integrating AWS Bedrock! 🚀
+
+---
+
+## Next up
+
+**[Day 4](day4.md)** - replace all that console clicking with Terraform.

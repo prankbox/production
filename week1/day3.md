@@ -7,6 +7,7 @@ Today you'll add enterprise-grade authentication to your Business Idea Generator
 ## What You'll Build
 
 An authenticated version of your app that:
+
 - Requires users to sign in before accessing the idea generator
 - Supports multiple authentication providers (Google, GitHub, Email)
 - Passes secure JWT tokens to your backend
@@ -21,7 +22,6 @@ An authenticated version of your app that:
 ## IMPORTANT Note - added since the videos
 
 In some situations, if your app takes longer than 60 seconds to respond to a request, it's possible that you experience a Timeout error. You'll see in the browser's Javascript Console that you're getting a 403 error. The fix for this is in community_contributions explained in the file jwt_token_60s_fix.md. Look out for this 403 timeout after 60 seconds, and if it happens, please see the fix. Thanks!
-
 
 ## Part 1: User Authentication
 
@@ -51,7 +51,27 @@ In your terminal, install the Clerk SDK of v6 like `6.39.0`:
 npm install @clerk/nextjs@6.39.0
 ```
 
-Side note: The latest `@clerk/nextjs` version as of Mar 6, 2026 is 7.0.1.  The version 7.0.1 removed `SignedIn` and `SignedOut` calls that are required in the `page/index.tsx` of our `saas` project.  If you have already installed the latest `@clerk/nextjs` and saw the error `those components are not found` shown in red underlined, please confirm the version installed with the following first line and you should see the result as expected.
+**Why the version pin matters:** on March 3, 2026 Clerk released "Core 3" as `@clerk/nextjs` v7, and it **removed the three control components this course uses** - `SignedIn`, `SignedOut` and `Protect` - replacing all of them with a single `<Show>` component. If you install v7 (or just `@clerk/nextjs` with no version), the imports in `pages/index.tsx` and `pages/product.tsx` will fail with errors like `SignedIn is not available in @clerk/nextjs`.
+
+So please install exactly `6.39.0` as shown above. Version 6 is still fully supported and works with Next.js 16.
+
+If you'd rather use v7, everything in Days 3 and 4 still works - you just need these three substitutions everywhere:
+
+| Course code (v6) | Clerk v7 equivalent |
+| --- | --- |
+| `<SignedIn>…</SignedIn>` | `<Show when="signed-in">…</Show>` |
+| `<SignedOut>…</SignedOut>` | `<Show when="signed-out">…</Show>` |
+| `<Protect plan="premium_subscription">…</Protect>` | `<Show when={{ plan: 'premium_subscription' }}>…</Show>` |
+
+...and import `Show` from `@clerk/nextjs` instead of the three removed names. See Clerk's [Core 3 upgrade guide](https://clerk.com/docs/guides/development/upgrading/upgrade-guides/core-3).
+
+To confirm which version you actually installed:
+
+```bash
+npm list @clerk/nextjs
+```
+
+You should see `6.39.0`. If you see a 7.x version, run the `npm install @clerk/nextjs@6.39.0` command again.
 
 For handling streaming with authentication, also install:
 
@@ -250,6 +270,7 @@ export default function Home() {
 ### Step 8: Configure Backend Authentication
 
 First, get your JWKS URL from Clerk:
+
 1. Go to your Clerk Dashboard
 2. Click **Configure** (top nav)
 3. Click **API Keys** (side nav)  
@@ -258,6 +279,7 @@ First, get your JWKS URL from Clerk:
 **What is JWKS?** The JWKS (JSON Web Key Set) URL is a public endpoint that contains Clerk's public keys. When a user signs in, Clerk creates a JWT (JSON Web Token) - a digitally signed token that proves the user's identity. Your Python backend uses the JWKS URL to fetch Clerk's public keys and verify that incoming JWT tokens are genuine and haven't been tampered with. This allows secure authentication without your backend needing to contact Clerk for every request - it can verify tokens independently using cryptographic signatures.
 
 Add to `.env.local` and save:
+
 ```bash
 CLERK_JWKS_URL=your_jwks_url_here
 ```
@@ -266,7 +288,7 @@ CLERK_JWKS_URL=your_jwks_url_here
 
 Add the Clerk authentication library to `requirements.txt`:
 
-```
+```text
 fastapi
 uvicorn
 openai
@@ -322,21 +344,22 @@ Add your Clerk keys to Vercel:
 ```bash
 vercel env add NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
 ```
+
 Paste your publishable key and select all environments.
 
 ```bash
 vercel env add CLERK_SECRET_KEY
 ```
+
 Paste your secret key and select all environments except for development.
 
 ```bash
 vercel env add CLERK_JWKS_URL
 ```
+
 Paste your JWKS URL and select all environments except for development.
 
-### Step 12: (This step intentionally skipped - we will test after deployment)
-
-### Step 13: Deploy to Production
+### Step 12: Deploy to Production
 
 Deploy your authenticated app:
 
@@ -346,11 +369,12 @@ vercel --prod
 
 Visit your production URL and test the complete authentication flow!
 
-NOTE - if you hit a problem with jwt token expiration, please see this [fix contributed by Artur P](../community_contributions/arturp_jwt_token_fix_notes.md)
+NOTE - if you hit a problem with jwt token expiration, please see this [fix contributed by Artur P](../community_contributions/jwt_token_60s_fix.md)
 
 ## What's Happening?
 
 Your app now has:
+
 - **Secure authentication**: Users must sign in to access your product
 - **Client-side route protection**: Unauthenticated users are redirected from protected pages
 - **JWT verification**: Every API request is verified using cryptographic signatures
@@ -373,21 +397,25 @@ This architecture keeps your Next.js deployment simple (static/client-side only)
 ## Troubleshooting
 
 ### "Unauthorized" errors
+
 - Check that all three environment variables are set correctly in Vercel
 - Ensure the JWKS URL is copied correctly from Clerk
 - Verify you're signed in before accessing `/product`
 
 ### Sign-in modal not appearing
+
 - Check that `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` starts with `pk_`
 - Ensure you've wrapped your app with `ClerkProvider`
 - Clear browser cache and cookies
 
 ### API not authenticating
+
 - Verify `CLERK_JWKS_URL` is set in your environment
 - Check that `fastapi-clerk-auth` is in requirements.txt
 - Ensure the JWT token is being sent in the Authorization header
 
 ### Local development issues
+
 - Make sure `.env.local` has all three Clerk variables
 - Restart your dev server after adding environment variables
 - Try clearing Next.js cache: `rm -rf .next`
@@ -395,9 +423,16 @@ This architecture keeps your Next.js deployment simple (static/client-side only)
 ## Next Steps
 
 Congratulations! You've added professional authentication to your SaaS. In Part 2, we'll add:
+
 - Subscription tiers with Stripe
 - Usage limits based on subscription level
 - Payment processing
 - Customer portal for managing subscriptions
 
 Your app is now a real SaaS product with secure user authentication!
+
+---
+
+## Next up
+
+Continue straight on to **[Day 3, Part 2](day3.part2.md)** - add subscriptions and payments with Clerk Billing.

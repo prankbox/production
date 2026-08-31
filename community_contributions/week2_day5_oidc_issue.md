@@ -31,7 +31,7 @@ Temporarily add this in `./scripts/deploy.yaml` between the `Checkout code` and 
 
 ```yaml
 - name: Inspect GitHub OIDC token
-  uses: actions/github-script@v7
+  uses: actions/github-script@v9
   with:
     script: |
       const token = await core.getIDToken('sts.amazonaws.com')
